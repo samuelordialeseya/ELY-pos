@@ -407,103 +407,91 @@ body {
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
 
-/* --- IPAD AIR 2 LANDSCAPE FINAL FIX --- */
+/* --- IPAD AIR 2 LANDSCAPE FINAL (Global Scroll + Fixed Header) --- */
 @media (max-width: 1180px) {
-  
-  /* 1. LAYOUT: Keep sidebars fixed, but allow center to scroll */
+
+  /* 1. GLOBAL LAYOUT & SCROLLING */
   .pos-layout {
     grid-template-columns: 170px 1fr 220px;
-    /* Ensure the grid respects the screen height, 
-       but allows internal scrolling */
-    height: 100vh; 
-    overflow: hidden; 
+    height: 100vh;
+    overflow: hidden; /* Lock the outer window */
   }
 
-  /* 2. FIX FOR DELIVERY TAB (The specific issue in your photo) */
-  /* Instead of Side-by-Side, we Stack them */
-  .delivery-grid {
-    grid-template-columns: 1fr; /* Single column only */
-    grid-template-rows: auto auto; /* Stack items */
-    height: auto; /* Allow it to grow tall so you can scroll */
-    gap: 30px;
-    padding-bottom: 50px; /* Extra space at bottom for scrolling */
-  }
-
-  /* Adjust the Selection Box Height */
-  .delivery-step-select {
-    height: 500px; /* Give it a fixed height so internal list scrolls */
-    margin-bottom: 20px;
-  }
-
-  /* make the Manifest Sheet fill the width */
-  .manifest-sheet {
-    width: 100%; 
-    max-width: 100%;
-    margin: 0;
-  }
-
-  /* 3. INVENTORY FORM (Stacked 2x2 for fingers) */
-  .form-grid {
-    grid-template-columns: 1fr 1fr; 
-    gap: 10px;
-  }
-  .form-grid input {
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  /* 4. COMPACT CHECKOUT (Right Sidebar) */
-  .bill-sidebar {
-    padding: 12px;
-  }
-  .customer-input {
-    padding: 8px;
-    font-size: 12px;
-    margin-top: 5px;
-  }
-  .bill-item-info strong {
-    font-size: 12px;
-    max-width: 80px; 
-    display: block;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .bill-item-price { font-size: 12px; }
-  .total-line { font-size: 18px; margin-bottom: 10px; }
-  .btn-navy, .btn-checkout { padding: 10px; font-size: 12px; }
-
-  /* 5. COMPACT NAVIGATION (Left Sidebar) */
-  .sidebar {
-    padding: 15px 10px;
-  }
-  .brand {
-    flex-direction: column; 
-    align-items: center;
-    text-align: center;
-    gap: 5px;
-  }
-  .brand h2 { font-size: 14px; }
-  .nav-item {
-    padding: 10px;
-    font-size: 12px;
-    justify-content: center; 
-  }
-
-  /* 6. GENERAL SCROLLING FIX */
+  /* Make the center viewport scroll vertically like a website */
   .main-viewport {
     padding: 15px;
-    overflow-y: auto; /* Ensures vertical scrolling works */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iPad */
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* 2. HEADER FIX (The issue in your photo) */
+  .top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Force small gap between search and badges */
+    flex-wrap: nowrap; /* Prevent wrapping */
+  }
+
+  /* Drastically shrink the search bar on iPad */
+  .top-search {
+    width: 100%;
+    min-width: 150px; 
+    max-width: 220px; /* LIMIT WIDTH so it doesn't push badges off */
+    font-size: 13px;
+  }
+  
+  /* Ensure the Date/Queue pills NEVER get cut off */
+  .header-right-info {
+    flex-shrink: 0; /* This forces the badges to stay full size */
+  }
+  .info-pill {
+    padding: 8px 12px; /* Slightly smaller padding */
+    min-width: auto;
+  }
+  .pill-label { font-size: 9px; }
+  .pill-value { font-size: 13px; }
+
+  /* 3. DELIVERY TAB (Stacked Vertically) */
+  .delivery-grid {
+    grid-template-columns: 1fr; /* Stack: Selection on Top, Manifest Below */
+    grid-template-rows: auto auto;
+    height: auto;
+    gap: 20px;
+    padding-bottom: 80px; /* Extra scroll space */
+  }
+  .delivery-step-select {
+    height: 400px; /* Fixed height for list scrolling */
+  }
+  .manifest-sheet {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* 4. INVENTORY FORM (2x2 Grid) */
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* 5. SIDEBARS (Compact) */
+  .sidebar { padding: 15px 5px; }
+  .brand { flex-direction: column; gap: 5px; margin-bottom: 15px; }
+  .brand h2 { font-size: 13px; text-align: center; }
+  .nav-item { font-size: 12px; justify-content: center; padding: 10px 5px; }
+  
+  .bill-sidebar { padding: 12px; }
+  .bill-header .customer-input { padding: 8px; font-size: 12px; }
+  .bill-item-info strong { max-width: 70px; font-size: 11px; }
+  .total-line { font-size: 18px; }
+  .btn-checkout { padding: 12px; font-size: 13px; }
 }
 
-/* PORTRAIT MODE SAFETY NET */
+/* PORTRAIT SAFETY NET */
 @media (max-width: 768px) {
   .pos-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 60px 1fr 80px; 
-    height: 100vh;
+    grid-template-rows: 60px 1fr 80px;
   }
   .sidebar, .bill-sidebar { display: none; }
 }
