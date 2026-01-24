@@ -407,93 +407,93 @@ body {
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
 
-/* --- IPAD & TABLET RESPONSIVENESS --- */
+/* --- IPAD AIR 2 LANDSCAPE OPTIMIZATION --- */
 
-/* 1. Medium Screens (iPad Pro / Small Laptops) */
-@media (max-width: 1200px) {
+/* iPad Air 2 Landscape is approx 1024px wide.
+   We will reduce the sidebars slightly but KEEP the laptop look.
+*/
+@media (max-width: 1100px) {
+  
+  /* 1. Adjust Layout Grid */
+  /* Was: 280px 1fr 380px (Too wide for iPad) */
+  /* Now: 220px 1fr 310px (Fits perfectly) */
   .pos-layout {
-    /* Shrink columns slightly */
-    grid-template-columns: 220px 1fr 340px; 
-  }
-  .top-search {
-    width: 100%; /* Allow search bar to shrink */
-  }
-}
-
-/* 2. Tablet Mode (iPad Portrait & Landscape) */
-@media (max-width: 1024px) {
-  /* Change grid to: Thin Nav | Flexible Content | Narrow Cart */
-  .pos-layout {
-    grid-template-columns: 80px 1fr 300px;
+    grid-template-columns: 220px 1fr 310px;
   }
 
-  /* Compact Navigation Sidebar */
+  /* 2. Slimmer Left Navigation */
   .sidebar {
-    padding: 20px 10px;
-    text-align: center;
+    padding: 20px 15px; /* Reduce padding */
+  }
+  .brand {
+    gap: 8px; /* Tighter logo spacing */
   }
   .brand h2 {
-    display: none; /* Hide the text "Daddy Ely's" */
-  }
-  .brand .logo-box {
-    margin: 0 auto 10px auto;
+    font-size: 18px; /* Slightly smaller title, but still visible */
   }
   .nav-item {
-    font-size: 11px; /* Smaller text */
-    padding: 15px 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    font-size: 13px; /* Slightly smaller text */
+    padding: 12px 14px;
   }
 
-  /* Allow Product Cards to get smaller (2 per row on portrait) */
+  /* 3. Middle Section Adjustments */
+  .main-viewport {
+    padding: 20px; /* Give more breathing room by reducing padding slightly */
+  }
+  .top-search {
+    width: 100%; /* Let search bar fill available space */
+  }
+  /* Force 2 cards per row on iPad Landscape */
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 15px;
   }
+  /* Scale down card contents slightly */
   .food-card {
-    padding: 15px; /* Less padding inside cards */
+    padding: 18px;
   }
-  .add-btn {
-    width: 100%; /* Make button full width of the small card */
+  .food-card h4 {
+    font-size: 14px;
   }
 
-  /* Compact Checkout Sidebar */
+  /* 4. Slimmer Checkout Sidebar (Right) */
   .bill-sidebar {
-    padding: 15px;
-    min-width: 0; /* Prevent overflow */
+    padding: 20px 15px;
   }
-  .customer-input {
+  .bill-header input.customer-input {
     font-size: 13px;
+    padding: 10px;
   }
   .bill-item-info strong {
     font-size: 13px;
-    display: block;
-    max-width: 120px; /* Prevent text overflow */
-    white-space: nowrap;
+    max-width: 100px; /* Prevent long names from breaking layout */
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+  .bill-item-price {
+    font-size: 13px;
+  }
+  .total-line {
+    font-size: 22px; /* Smaller total font so it doesn't wrap */
+  }
+  .btn-checkout {
+    font-size: 14px;
+    padding: 14px;
   }
 }
 
-/* 3. Mobile / Very Small Screens (Just in case) */
+/* 5. Portrait Mode Safety Net */
+/* Only triggers if you flip the iPad vertically */
 @media (max-width: 768px) {
   .pos-layout {
-    /* Stack: Content on top, Cart on bottom (Nav hidden or tiny) */
-    grid-template-columns: 60px 1fr;
-    grid-template-rows: 1fr 200px; /* Cart gets fixed height at bottom */
-    grid-template-areas: 
-      "nav main"
-      "nav cart";
+    grid-template-columns: 70px 1fr 0px; /* Hide cart in grid */
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: auto;
   }
-  .sidebar { grid-area: nav; }
-  .main-viewport { grid-area: main; }
-  .bill-sidebar { 
-    grid-area: cart; 
-    border-left: none;
-    border-top: 2px solid var(--border);
-    box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
-  }
+  .sidebar { display: none; } /* Hide sidebar on portrait for now */
+  .bill-sidebar { width: 100%; border-left: none; border-top: 1px solid #ddd; }
 }
