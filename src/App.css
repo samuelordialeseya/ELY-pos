@@ -407,74 +407,98 @@ body {
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
 
-/* --- IPAD AIR 2 LANDSCAPE FINAL (Global Scroll + Fixed Header) --- */
+/* --- IPAD AIR 2 LANDSCAPE FINAL (Global Scroll + Vertical Inventory) --- */
 @media (max-width: 1180px) {
 
-  /* 1. GLOBAL LAYOUT & SCROLLING */
+  /* 1. GLOBAL LAYOUT */
   .pos-layout {
     grid-template-columns: 170px 1fr 220px;
     height: 100vh;
-    overflow: hidden; /* Lock the outer window */
+    overflow: hidden; 
   }
 
-  /* Make the center viewport scroll vertically like a website */
   .main-viewport {
     padding: 15px;
-    overflow-y: auto; 
+    overflow-y: auto; /* Enable Vertical Scrolling */
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 2. HEADER FIX (The issue in your photo) */
-  .top-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px; /* Force small gap between search and badges */
-    flex-wrap: nowrap; /* Prevent wrapping */
+  /* 2. INVENTORY TABLE TRANSFORMATION (The Fix) */
+  /* Hide the table header row because we are stacking items */
+  .inv-table thead {
+    display: none; 
   }
 
-  /* Drastically shrink the search bar on iPad */
+  /* Turn every row (<tr>) into a white "Card" */
+  .inv-table tr {
+    display: block; /* Stacks vertically */
+    background: white;
+    margin-bottom: 15px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  /* Make cells (<td>) stack on top of each other */
+  .inv-table td {
+    display: block; 
+    width: 100%;
+    text-align: right; /* Aligns text to right for cleaner look */
+    padding: 8px 0;
+    border-bottom: 1px dashed #f3f4f6;
+    display: flex; /* Use flex to align content */
+    justify-content: space-between; /* Spreads label and value */
+    align-items: center;
+  }
+  
+  .inv-table td:last-child {
+    border-bottom: none;
+    justify-content: flex-end; /* Buttons go to the right */
+    padding-top: 15px;
+  }
+
+  /* Fix the Inputs when Editing */
+  .inv-table input {
+    width: 100%; /* Input fills the card width */
+    font-size: 14px;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  /* 3. HEADER & SEARCH BAR FIX */
+  .top-header {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
   .top-search {
     width: 100%;
     min-width: 150px; 
-    max-width: 220px; /* LIMIT WIDTH so it doesn't push badges off */
+    max-width: 220px; 
     font-size: 13px;
   }
-  
-  /* Ensure the Date/Queue pills NEVER get cut off */
-  .header-right-info {
-    flex-shrink: 0; /* This forces the badges to stay full size */
-  }
-  .info-pill {
-    padding: 8px 12px; /* Slightly smaller padding */
-    min-width: auto;
-  }
-  .pill-label { font-size: 9px; }
-  .pill-value { font-size: 13px; }
+  .header-right-info { flex-shrink: 0; }
 
-  /* 3. DELIVERY TAB (Stacked Vertically) */
+  /* 4. DELIVERY TAB (Stacked) */
   .delivery-grid {
-    grid-template-columns: 1fr; /* Stack: Selection on Top, Manifest Below */
+    grid-template-columns: 1fr; 
     grid-template-rows: auto auto;
     height: auto;
     gap: 20px;
-    padding-bottom: 80px; /* Extra scroll space */
+    padding-bottom: 80px;
   }
-  .delivery-step-select {
-    height: 400px; /* Fixed height for list scrolling */
-  }
-  .manifest-sheet {
-    width: 100%;
-    max-width: 100%;
-  }
+  .delivery-step-select { height: 400px; }
+  .manifest-sheet { width: 100%; }
 
-  /* 4. INVENTORY FORM (2x2 Grid) */
+  /* 5. INVENTORY FORM (2x2 Grid) */
   .form-grid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
 
-  /* 5. SIDEBARS (Compact) */
+  /* 6. COMPACT SIDEBARS */
   .sidebar { padding: 15px 5px; }
   .brand { flex-direction: column; gap: 5px; margin-bottom: 15px; }
   .brand h2 { font-size: 13px; text-align: center; }
