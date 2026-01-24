@@ -406,3 +406,94 @@ body {
 }
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
+
+/* --- IPAD & TABLET RESPONSIVENESS --- */
+
+/* 1. Medium Screens (iPad Pro / Small Laptops) */
+@media (max-width: 1200px) {
+  .pos-layout {
+    /* Shrink columns slightly */
+    grid-template-columns: 220px 1fr 340px; 
+  }
+  .top-search {
+    width: 100%; /* Allow search bar to shrink */
+  }
+}
+
+/* 2. Tablet Mode (iPad Portrait & Landscape) */
+@media (max-width: 1024px) {
+  /* Change grid to: Thin Nav | Flexible Content | Narrow Cart */
+  .pos-layout {
+    grid-template-columns: 80px 1fr 300px;
+  }
+
+  /* Compact Navigation Sidebar */
+  .sidebar {
+    padding: 20px 10px;
+    text-align: center;
+  }
+  .brand h2 {
+    display: none; /* Hide the text "Daddy Ely's" */
+  }
+  .brand .logo-box {
+    margin: 0 auto 10px auto;
+  }
+  .nav-item {
+    font-size: 11px; /* Smaller text */
+    padding: 15px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Allow Product Cards to get smaller (2 per row on portrait) */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+  }
+  .food-card {
+    padding: 15px; /* Less padding inside cards */
+  }
+  .add-btn {
+    width: 100%; /* Make button full width of the small card */
+  }
+
+  /* Compact Checkout Sidebar */
+  .bill-sidebar {
+    padding: 15px;
+    min-width: 0; /* Prevent overflow */
+  }
+  .customer-input {
+    font-size: 13px;
+  }
+  .bill-item-info strong {
+    font-size: 13px;
+    display: block;
+    max-width: 120px; /* Prevent text overflow */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* 3. Mobile / Very Small Screens (Just in case) */
+@media (max-width: 768px) {
+  .pos-layout {
+    /* Stack: Content on top, Cart on bottom (Nav hidden or tiny) */
+    grid-template-columns: 60px 1fr;
+    grid-template-rows: 1fr 200px; /* Cart gets fixed height at bottom */
+    grid-template-areas: 
+      "nav main"
+      "nav cart";
+  }
+  .sidebar { grid-area: nav; }
+  .main-viewport { grid-area: main; }
+  .bill-sidebar { 
+    grid-area: cart; 
+    border-left: none;
+    border-top: 2px solid var(--border);
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+  }
+}
