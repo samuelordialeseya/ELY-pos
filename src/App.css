@@ -407,124 +407,103 @@ body {
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
 
-/* --- IPAD AIR 2 & TABLET OPTIMIZATION (Final) --- */
+/* --- IPAD AIR 2 LANDSCAPE FINAL FIX --- */
 @media (max-width: 1180px) {
   
-  /* 1. LAYOUT: Maximized Center Area */
-  /* Left(170px) | Center(Flex) | Right(220px) */
+  /* 1. LAYOUT: Keep sidebars fixed, but allow center to scroll */
   .pos-layout {
     grid-template-columns: 170px 1fr 220px;
+    /* Ensure the grid respects the screen height, 
+       but allows internal scrolling */
+    height: 100vh; 
+    overflow: hidden; 
   }
 
-  /* 2. INVENTORY FORM: 2x2 Grid (Stacked) */
-  /* This changes the 4-column row into a 2-column box */
+  /* 2. FIX FOR DELIVERY TAB (The specific issue in your photo) */
+  /* Instead of Side-by-Side, we Stack them */
+  .delivery-grid {
+    grid-template-columns: 1fr; /* Single column only */
+    grid-template-rows: auto auto; /* Stack items */
+    height: auto; /* Allow it to grow tall so you can scroll */
+    gap: 30px;
+    padding-bottom: 50px; /* Extra space at bottom for scrolling */
+  }
+
+  /* Adjust the Selection Box Height */
+  .delivery-step-select {
+    height: 500px; /* Give it a fixed height so internal list scrolls */
+    margin-bottom: 20px;
+  }
+
+  /* make the Manifest Sheet fill the width */
+  .manifest-sheet {
+    width: 100%; 
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* 3. INVENTORY FORM (Stacked 2x2 for fingers) */
   .form-grid {
-    grid-template-columns: 1fr 1fr; /* 2 columns */
+    grid-template-columns: 1fr 1fr; 
     gap: 10px;
   }
-  /* Ensure the inputs are tall enough for fingers */
   .form-grid input {
     padding: 12px;
     font-size: 14px;
   }
-  /* The "Add to Inventory" button needs to stand out */
-  .btn-save-inv {
-    padding: 15px;
-    margin-top: 5px;
-  }
 
-  /* 3. COMPACT CHECKOUT (Right Sidebar) */
+  /* 4. COMPACT CHECKOUT (Right Sidebar) */
   .bill-sidebar {
-    padding: 12px; 
-  }
-  .order-tag { 
-    font-size: 11px; 
-    margin-bottom: 5px;
+    padding: 12px;
   }
   .customer-input {
     padding: 8px;
     font-size: 12px;
     margin-top: 5px;
   }
-  /* Compact Bill Rows */
-  .bill-row {
-    padding: 8px 0;
-  }
   .bill-item-info strong {
     font-size: 12px;
-    max-width: 80px; /* Cut off long text */
+    max-width: 80px; 
     display: block;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  .bill-item-price {
-    font-size: 12px;
-  }
-  .btn-remove-item {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
-  }
-  
-  /* Compact Footer Buttons */
-  .total-line {
-    font-size: 18px; 
-    margin-bottom: 10px;
-  }
-  .btn-navy, .btn-checkout {
-    padding: 10px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
+  .bill-item-price { font-size: 12px; }
+  .total-line { font-size: 18px; margin-bottom: 10px; }
+  .btn-navy, .btn-checkout { padding: 10px; font-size: 12px; }
 
-  /* 4. COMPACT NAVIGATION (Left Sidebar) */
+  /* 5. COMPACT NAVIGATION (Left Sidebar) */
   .sidebar {
     padding: 15px 10px;
   }
   .brand {
-    flex-direction: column; /* Stack logo and text */
+    flex-direction: column; 
     align-items: center;
     text-align: center;
-    margin-bottom: 20px;
     gap: 5px;
   }
-  .brand h2 { 
-    font-size: 14px; 
-    line-height: 1.2;
-  }
+  .brand h2 { font-size: 14px; }
   .nav-item {
     padding: 10px;
     font-size: 12px;
-    justify-content: center; /* Center text */
+    justify-content: center; 
   }
 
-  /* 5. MAIN CONTENT ADJUSTMENTS */
+  /* 6. GENERAL SCROLLING FIX */
   .main-viewport {
     padding: 15px;
-  }
-  /* Ensure product cards are readable */
-  .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
-  /* Fix the Inventory Table overflowing */
-  .inv-table th, .inv-table td {
-    padding: 10px 8px; /* Tighter table cells */
-    font-size: 12px;
+    overflow-y: auto; /* Ensures vertical scrolling works */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iPad */
   }
 }
 
-/* PORTRAIT MODE BACKUP */
+/* PORTRAIT MODE SAFETY NET */
 @media (max-width: 768px) {
   .pos-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr 80px; 
+    height: 100vh;
   }
-  .sidebar { display: none; }
-  .bill-sidebar { display: none; }
-  /* On mobile portrait, stack form to 1 column */
-  .form-grid {
-    grid-template-columns: 1fr; 
-  }
+  .sidebar, .bill-sidebar { display: none; }
 }
