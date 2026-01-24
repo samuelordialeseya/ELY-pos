@@ -407,100 +407,124 @@ body {
 .date-input { padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; font-family: inherit; box-shadow: var(--shadow-sm); }
 .no-print { display: flex; }
 
-/* --- IPAD AIR 2 LANDSCAPE FIX (Aggressive Space Saving) --- */
-
+/* --- IPAD AIR 2 & TABLET OPTIMIZATION (Final) --- */
 @media (max-width: 1180px) {
   
-  /* 1. THE GRID LAYOUT */
-  /* Was: 280px 1fr 380px */
-  /* NOW: Left(200px) | Center(Flex) | Right(260px) */
-  /* This saves 200px of space for the main center view */
+  /* 1. LAYOUT: Maximized Center Area */
+  /* Left(170px) | Center(Flex) | Right(220px) */
   .pos-layout {
-    grid-template-columns: 200px 1fr 260px;
+    grid-template-columns: 170px 1fr 220px;
   }
 
-  /* 2. SHRINK RIGHT SIDEBAR (CHECKOUT) */
+  /* 2. INVENTORY FORM: 2x2 Grid (Stacked) */
+  /* This changes the 4-column row into a 2-column box */
+  .form-grid {
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    gap: 10px;
+  }
+  /* Ensure the inputs are tall enough for fingers */
+  .form-grid input {
+    padding: 12px;
+    font-size: 14px;
+  }
+  /* The "Add to Inventory" button needs to stand out */
+  .btn-save-inv {
+    padding: 15px;
+    margin-top: 5px;
+  }
+
+  /* 3. COMPACT CHECKOUT (Right Sidebar) */
   .bill-sidebar {
-    padding: 15px; /* Reduce padding from 30px */
+    padding: 12px; 
   }
-  /* Make inputs smaller */
+  .order-tag { 
+    font-size: 11px; 
+    margin-bottom: 5px;
+  }
   .customer-input {
-    padding: 8px 12px;
-    font-size: 13px;
-    margin-top: 8px;
+    padding: 8px;
+    font-size: 12px;
+    margin-top: 5px;
   }
-  /* Handle long product names in the cart */
+  /* Compact Bill Rows */
+  .bill-row {
+    padding: 8px 0;
+  }
   .bill-item-info strong {
     font-size: 12px;
+    max-width: 80px; /* Cut off long text */
     display: block;
-    max-width: 90px; /* Cut off text if it's too long */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  .bill-item-info p { font-size: 11px; } /* Unit text smaller */
-  .bill-item-price { font-size: 13px; }
-  
-  /* Make checkout buttons compact */
-  .btn-navy, .btn-checkout {
-    padding: 12px;
-    font-size: 13px;
-    margin-bottom: 8px;
+  .bill-item-price {
+    font-size: 12px;
   }
+  .btn-remove-item {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+  
+  /* Compact Footer Buttons */
   .total-line {
-    font-size: 20px; /* Smaller Total Text */
-    margin-bottom: 15px;
-  }
-
-  /* 3. SHRINK LEFT SIDEBAR (NAV) */
-  .sidebar {
-    padding: 20px 15px;
-  }
-  .brand h2 { font-size: 16px; } /* Smaller Logo Text */
-  .nav-item {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
-
-  /* 4. EXPAND MAIN CENTER VIEW */
-  .main-viewport {
-    padding: 15px; /* Less white space around edges */
-  }
-  .top-search {
-    width: 100%; /* Search bar fills top */
-    padding: 10px 15px;
-  }
-  
-  /* Make Product Cards Smaller to fit more */
-  .product-grid {
-    /* Cards can now go down to 150px wide */
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
-  }
-  .food-card {
-    padding: 15px;
-  }
-  .food-card h4 {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  .food-price {
-    font-size: 14px;
+    font-size: 18px; 
     margin-bottom: 10px;
   }
-  .add-btn {
-    width: 100%; /* Button spans full width of card */
-    padding: 8px;
+  .btn-navy, .btn-checkout {
+    padding: 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  /* 4. COMPACT NAVIGATION (Left Sidebar) */
+  .sidebar {
+    padding: 15px 10px;
+  }
+  .brand {
+    flex-direction: column; /* Stack logo and text */
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+    gap: 5px;
+  }
+  .brand h2 { 
+    font-size: 14px; 
+    line-height: 1.2;
+  }
+  .nav-item {
+    padding: 10px;
+    font-size: 12px;
+    justify-content: center; /* Center text */
+  }
+
+  /* 5. MAIN CONTENT ADJUSTMENTS */
+  .main-viewport {
+    padding: 15px;
+  }
+  /* Ensure product cards are readable */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  /* Fix the Inventory Table overflowing */
+  .inv-table th, .inv-table td {
+    padding: 10px 8px; /* Tighter table cells */
     font-size: 12px;
   }
 }
 
-/* PORTRAIT MODE (Just in case they rotate it) */
+/* PORTRAIT MODE BACKUP */
 @media (max-width: 768px) {
   .pos-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 60px 1fr 80px; /* Nav | Main | Cart Bar */
+    grid-template-rows: 60px 1fr 80px; 
   }
-  .sidebar { display: none; } /* Hide Sidebar */
-  .bill-sidebar { display: none; } /* Hide Cart (Need a mobile view logic later) */
+  .sidebar { display: none; }
+  .bill-sidebar { display: none; }
+  /* On mobile portrait, stack form to 1 column */
+  .form-grid {
+    grid-template-columns: 1fr; 
+  }
 }
