@@ -423,15 +423,14 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 2. INVENTORY TABLE TRANSFORMATION (The Fix) */
-  /* Hide the table header row because we are stacking items */
+/* 2. INVENTORY TABLE TRANSFORMATION (Cards with Labels) */
   .inv-table thead {
-    display: none; 
+    display: none; /* Hide original header */
   }
 
-  /* Turn every row (<tr>) into a white "Card" */
+  /* Card Container */
   .inv-table tr {
-    display: block; /* Stacks vertically */
+    display: block;
     background: white;
     margin-bottom: 15px;
     border: 1px solid #E5E7EB;
@@ -440,32 +439,74 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
 
-  /* Make cells (<td>) stack on top of each other */
+  /* Inner Rows (The Cells) */
   .inv-table td {
-    display: block; 
-    width: 100%;
-    text-align: right; /* Aligns text to right for cleaner look */
-    padding: 8px 0;
-    border-bottom: 1px dashed #f3f4f6;
-    display: flex; /* Use flex to align content */
-    justify-content: space-between; /* Spreads label and value */
+    display: flex; 
+    justify-content: space-between; /* Pushes Label left, Value right */
     align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f3f4f6;
+    text-align: right;
+    font-size: 14px;
   }
   
+  /* Remove border from the last row (Buttons) */
   .inv-table td:last-child {
     border-bottom: none;
-    justify-content: flex-end; /* Buttons go to the right */
     padding-top: 15px;
+    justify-content: flex-end; /* Keep buttons on the right */
   }
 
-  /* Fix the Inputs when Editing */
-  .inv-table input {
-    width: 100%; /* Input fills the card width */
-    font-size: 14px;
-    padding: 10px;
-    margin: 5px 0;
+  /* --- THE LABELS (This adds "Name:", "Category:", etc.) --- */
+  
+  /* 1st Column: Product Name */
+  .inv-table td:nth-of-type(1)::before {
+    content: "Product";
+    font-weight: 700;
+    color: #6B7280; /* Gray text */
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* 2nd Column: Category */
+  .inv-table td:nth-of-type(2)::before {
+    content: "Category";
+    font-weight: 700;
+    color: #6B7280;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* 3rd Column: Price */
+  .inv-table td:nth-of-type(3)::before {
+    content: "Price";
+    font-weight: 700;
+    color: #6B7280;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* 4th Column: Unit */
+  .inv-table td:nth-of-type(4)::before {
+    content: "Unit";
+    font-weight: 700;
+    color: #6B7280;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  /* EDIT MODE INPUTS */
+  /* When editing, ensure the input doesn't squash the label */
+  .inv-table td input {
+    width: 60%; /* Input takes 60% of width, Label takes the rest */
+    text-align: right;
+    padding: 8px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   /* 3. HEADER & SEARCH BAR FIX */
