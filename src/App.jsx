@@ -19,7 +19,8 @@ function App() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState("");
-  const [category, setCategory] = useState("Fruits");
+  // CHANGED: Initial state is now empty so the placeholder shows
+  const [category, setCategory] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({ name: "", price: "", unit: "", category: "" });
 
@@ -183,7 +184,8 @@ function App() {
     e.preventDefault();
     if (name && price && unit) {
       setFruits([...fruits, { id: generateId(), name, price: parseFloat(price), unit, category }]);
-      setName(""); setPrice(""); setUnit(""); setCategory("Fruits");
+      // CHANGED: Reset category to empty string instead of "Fruits"
+      setName(""); setPrice(""); setUnit(""); setCategory("");
       showToast("Added to Stock");
     }
   };
