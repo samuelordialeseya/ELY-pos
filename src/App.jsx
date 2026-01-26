@@ -12,9 +12,10 @@ function App() {
   const [fruits, setFruits] = useState(() => JSON.parse(localStorage.getItem("fruits")) || []);
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("cart")) || []);
   const [completedOrders, setCompletedOrders] = useState(() => JSON.parse(localStorage.getItem("completedOrders")) || []);
+  const [preOrders, setPreOrders] = useState(() => JSON.parse(localStorage.getItem("preOrders")) || []);
   const [customerCount, setCustomerCount] = useState(() => parseInt(localStorage.getItem("customerCount")) || 1);
 
-  // Inventory States
+  // States
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState("");
@@ -22,9 +23,11 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({ name: "", price: "", unit: "", category: "" });
 
-  // Checkout States
+  // Checkout & Pre-Order Input States
   const [customer, setCustomer] = useState("");
   const [address, setAddress] = useState(""); 
+  const [preOrderCustomer, setPreOrderCustomer] = useState(""); 
+  const [preOrderCart, setPreOrderCart] = useState([]); 
   
   // Delivery & UI States
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
@@ -37,11 +40,73 @@ function App() {
   useEffect(() => { localStorage.setItem("fruits", JSON.stringify(fruits)); }, [fruits]);
   useEffect(() => { localStorage.setItem("cart", JSON.stringify(cart)); }, [cart]);
   useEffect(() => { localStorage.setItem("completedOrders", JSON.stringify(completedOrders)); }, [completedOrders]);
+  useEffect(() => { localStorage.setItem("preOrders", JSON.stringify(preOrders)); }, [preOrders]); 
   useEffect(() => { localStorage.setItem("customerCount", customerCount); }, [customerCount]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
-  // --- LOGIC: Delivery Status & Sorting ---
+  // --- PRE-ORDER LOGIC ---
+  const addToPreOrderCart = (product) => {
+    const qty = parseFloat(weights[product.id]);
+    if (!qty || qty <= 0) return showToast("Enter qty");
+    
+    setPreOrderCart([...preOrderCart, {
+      id: generateId(),
+      productId: product.id,
+      name: product.name,
+      quantity: qty,
+      unit: product.unit
+    }]);
+    setWeights({ ...weights, [product.id]: "" });
+  };
+
+  const savePreOrder = () => {
+    if (!preOrderCustomer) return showToast("Enter Customer Name");
+    if (preOrderCart.length === 0) return showToast("No items selected");
+
+    setPreOrders([...preOrders, {
+      id: generateId(),
+      customer: preOrderCustomer,
+      items: [...preOrderCart],
+      date: new Date().toLocaleDateString()
+    }]);
+    
+    setPreOrderCustomer("");
+    setPreOrderCart([]);
+    showToast("Pre-Order Added!");
+  };
+
+  const getAggregatedShoppingList = () => {
+    const masterList = {};
+    preOrders.forEach(order => {
+      order.items.forEach(item => {
+        if (masterList[item.name]) {
+          masterList[item.name].quantity += item.quantity;
+        } else {
+          masterList[item.name] = { ...item };
+        }
+      });
+    });
+    return Object.values(masterList);
+  };
+
+  const clearAllPreOrders = () => {
+    if(window.confirm("Clear all pre-orders? Do this after buying.")) {
+      setPreOrders([]);
+    }
+  };
+
+  const captureShoppingList = () => {
+    const element = document.getElementById("shopping-list-capture");
+    html2canvas(element, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = `Shopping_List_${new Date().toLocaleDateString()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  };
+
+  // --- EXISTING LOGIC ---
   const toggleDeliveryStatus = (id) => {
     setCompletedOrders(prev => prev.map(order => 
       order.id === id ? { ...order, status: order.status === "Delivered" ? "Pending" : "Delivered" } : order
@@ -49,30 +114,6 @@ function App() {
     showToast("Status Updated");
   };
 
-  const getSortedManifest = () => {
-    const selected = completedOrders.filter(o => selectedOrderIds.includes(o.id));
-    const getPriority = (addr) => {
-      const val = addr.trim();
-      if (val.startsWith('4')) return 1;
-      if (val.startsWith('3')) return 2;
-      if (val.startsWith('2')) return 3;
-      if (val.startsWith('1')) return 4;
-      return 5; // Others
-    };
-    return selected.sort((a, b) => getPriority(a.address) - getPriority(b.address));
-  };
-
-  const getDeliveryList = () => {
-    const filtered = completedOrders.filter(o => o.rawDate === filterDate);
-    // Sort: Pending first, Delivered last
-    return filtered.sort((a, b) => {
-      if (a.status === "Delivered" && b.status !== "Delivered") return 1;
-      if (a.status !== "Delivered" && b.status === "Delivered") return -1;
-      return 0;
-    });
-  };
-
-  // --- ACTIONS: Complete, Add, Save, Download ---
   const completeOrder = () => {
     if (cart.length === 0) return showToast("Cart is empty!");
     const now = new Date();
@@ -90,6 +131,28 @@ function App() {
     setCustomerCount(prev => prev + 1);
     setCart([]); setCustomer(""); setAddress("");
     showToast("Transaction Saved!");
+  };
+
+  const getSortedManifest = () => {
+    const selected = completedOrders.filter(o => selectedOrderIds.includes(o.id));
+    const getPriority = (addr) => {
+      const val = addr.trim();
+      if (val.startsWith('4')) return 1;
+      if (val.startsWith('3')) return 2;
+      if (val.startsWith('2')) return 3;
+      if (val.startsWith('1')) return 4;
+      return 5;
+    };
+    return selected.sort((a, b) => getPriority(a.address) - getPriority(b.address));
+  };
+
+  const getDeliveryList = () => {
+    const filtered = completedOrders.filter(o => o.rawDate === filterDate);
+    return filtered.sort((a, b) => {
+      if (a.status === "Delivered" && b.status !== "Delivered") return 1;
+      if (a.status !== "Delivered" && b.status === "Delivered") return -1;
+      return 0;
+    });
   };
 
   const captureManifest = () => {
@@ -128,16 +191,24 @@ function App() {
   const addToCart = (product) => {
     const qty = parseFloat(weights[product.id]);
     if (!qty || qty <= 0) return showToast("Enter weight/qty");
-    setCart([...cart, { 
+    
+    const item = { 
       cartId: generateId(), 
       name: product.name, 
       price: product.price, 
       quantity: qty, 
       unit: product.unit, 
       subtotal: product.price * qty 
-    }]);
-    setWeights({ ...weights, [product.id]: "" });
-    showToast("Added to Cart");
+    };
+
+    if (view === 'preorder') {
+      setPreOrderCart([...preOrderCart, item]);
+      setWeights({ ...weights, [product.id]: "" });
+    } else {
+      setCart([...cart, item]);
+      setWeights({ ...weights, [product.id]: "" });
+      showToast("Added to Cart");
+    }
   };
 
   const saveEdit = (id) => {
@@ -152,6 +223,7 @@ function App() {
         <div className="brand"><div className="logo-box">DE</div><h2>Daddy Ely's</h2></div>
         <nav className="nav-links">
           <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => setView('pos')}>🛒 POS</div>
+          <div className={`nav-item ${view === 'preorder' ? 'active' : ''}`} onClick={() => setView('preorder')}>📝 Pre-Order</div>
           <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>📦 Inventory</div>
           <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => setView('orders')}>📋 History</div>
           <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => setView('delivery')}>🚚 Delivery</div>
@@ -161,7 +233,8 @@ function App() {
       <main className="main-viewport">
         <header className="top-header">
           <div className="header-left">
-            {view === 'pos' ? (
+            {/* ENABLED SEARCH FOR INVENTORY AS WELL */}
+            {(view === 'pos' || view === 'preorder' || view === 'inventory') ? (
               <div className="pos-search-wrapper">
                 <input type="text" className="top-search" placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                 <div className="category-filter-bar">
@@ -174,21 +247,20 @@ function App() {
           </div>
           <div className="header-right-info">
             <div className="info-pill"><span className="pill-label">Today</span><span className="pill-value">{new Date().toLocaleDateString()}</span></div>
-            <div className="info-pill queue-pill"><span className="pill-label">Serving</span><span className="pill-value">#{customerCount}</span></div>
           </div>
         </header>
 
-        {view === 'pos' && (
+        {(view === 'pos' || view === 'preorder') && (
           <div className="product-grid">
             {fruits.filter(f => (selectedCategory === "All" || f.category === selectedCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase())).map(f => (
               <div key={f.id} className="food-card">
                 <div className="card-cat">{f.category}</div>
-                {/* Circle removed here */}
+                <div className="food-img-circle"></div>
                 <h4>{f.name}</h4>
                 <p className="food-price">₱{f.price.toFixed(2)} / {f.unit}</p>
                 <div className="weight-selector">
                   <input type="number" step="any" placeholder={f.unit} value={weights[f.id] || ""} onChange={e => setWeights({...weights, [f.id]: e.target.value})} />
-                  <button className="add-btn" onClick={() => addToCart(f)}>Add</button>
+                  <button className="add-btn" onClick={() => (view === 'preorder' ? addToPreOrderCart(f) : addToCart(f))}>Add</button>
                 </div>
               </div>
             ))}
@@ -209,7 +281,11 @@ function App() {
             <table className="inv-table">
               <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Unit</th><th>Actions</th></tr></thead>
               <tbody>
-                {fruits.map(f => (
+                {/* ADDED FILTERING LOGIC HERE */}
+                {fruits
+                  .filter(f => (selectedCategory === "All" || f.category === selectedCategory))
+                  .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map(f => (
                   <tr key={f.id}>
                     {editingId === f.id ? (
                       <>
@@ -333,27 +409,71 @@ function App() {
       </main>
 
       <aside className="bill-sidebar">
-        <div className="bill-header">
-          <div className="order-tag">Checkout</div>
-          <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
-          <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
-        </div>
-        <div className="bill-items">
-          {cart.map(item => (
-            <div key={item.cartId} className="bill-row">
-              <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
-              <div className="bill-item-right">
-                <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
-                <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))}>✕</button>
-              </div>
+        {view === 'preorder' ? (
+           <>
+            <div className="bill-header">
+              <div className="order-tag">PRE-ORDER BUILDER</div>
+              <input placeholder="Customer Name" value={preOrderCustomer} onChange={e => setPreOrderCustomer(e.target.value)} className="customer-input" />
             </div>
-          ))}
-        </div>
-        <div className="bill-footer">
-          <div className="total-line"><span>Total:</span><span>₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span></div>
-          <button className="btn-navy" onClick={() => setCart([])}>Clear</button>
-          <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
-        </div>
+            
+            <div className="bill-items">
+              {preOrderCart.map(item => (
+                <div key={item.id} className="bill-row">
+                  <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
+                  <button className="btn-remove-item" onClick={() => setPreOrderCart(preOrderCart.filter(i => i.id !== item.id))}>✕</button>
+                </div>
+              ))}
+              {preOrderCart.length === 0 && <p style={{textAlign:'center', marginTop:'20px', color:'#aaa'}}>Select items from grid to add.</p>}
+            </div>
+
+            <button className="btn-checkout" onClick={savePreOrder}>Save Pre-Order</button>
+            
+            <div className="preorder-summary-area" style={{marginTop: '30px', borderTop:'2px dashed #eee', paddingTop:'20px'}}>
+               <div className="order-tag">MASTER SHOPPING LIST</div>
+               <div id="shopping-list-capture" style={{background:'white', padding:'15px', border:'1px solid #eee', borderRadius:'8px', marginTop:'10px'}}>
+                  <h4 style={{textAlign:'center', marginBottom:'10px', color:'#00A3E0'}}>SHOPPING LIST</h4>
+                  <table style={{width:'100%', fontSize:'13px'}}>
+                    <tbody>
+                      {getAggregatedShoppingList().map((item, i) => (
+                        <tr key={i} style={{borderBottom:'1px solid #f3f4f6'}}>
+                          <td style={{padding:'5px 0'}}>{item.name}</td>
+                          <td style={{textAlign:'right', fontWeight:'bold'}}>{item.quantity}{item.unit}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+               </div>
+               <div style={{display:'flex', gap:'10px', marginTop:'10px'}}>
+                  <button className="btn-navy" onClick={clearAllPreOrders}>Clear All</button>
+                  <button className="btn-download-manifest" style={{fontSize:'12px', flex:1}} onClick={captureShoppingList}>📸 Print List</button>
+               </div>
+            </div>
+           </>
+        ) : (
+           <>
+            <div className="bill-header">
+              <div className="order-tag">Checkout</div>
+              <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
+              <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
+            </div>
+            <div className="bill-items">
+              {cart.map(item => (
+                <div key={item.cartId} className="bill-row">
+                  <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
+                  <div className="bill-item-right">
+                    <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
+                    <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="bill-footer">
+              <div className="total-line"><span>Total:</span><span>₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span></div>
+              <button className="btn-navy" onClick={() => setCart([])}>Clear</button>
+              <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
+            </div>
+           </>
+        )}
       </aside>
       {toast && <div className="toast-notification">{toast}</div>}
     </div>

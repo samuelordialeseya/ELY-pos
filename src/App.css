@@ -155,6 +155,11 @@ body {
 
 .card-cat { position: absolute; top: 12px; right: 12px; font-size: 10px; color: var(--text-muted); background: var(--bg); padding: 2px 8px; border-radius: 6px; }
 
+/* REMOVED: Hidden as requested in previous step */
+.food-img-circle { 
+  display: none;
+}
+
 .food-price { color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; }
 .weight-selector { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .weight-selector input { 
@@ -521,6 +526,13 @@ body {
     font-size: 13px;
   }
   .header-right-info { flex-shrink: 0; }
+  
+  /* NEW: Force categories to wrap vertically on iPad */
+  .category-filter-bar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
 
   /* 4. DELIVERY TAB (Stacked) */
   .delivery-grid {
@@ -559,4 +571,5 @@ body {
     grid-template-rows: 60px 1fr 80px;
   }
   .sidebar, .bill-sidebar { display: none; }
+  .food-img-circle { display: none; }
 }
