@@ -349,7 +349,12 @@ body {
   border-left: 1px solid var(--border); 
   display: flex; 
   flex-direction: column; 
-  /* Left Shadow and Z-index */
+ 
+  /* --- ADD THIS --- */
+  height: 100%; /* Forces it to respect the grid height */
+  overflow: hidden; /* Prevents the sidebar itself from scrolling */
+  /* ---------------- */
+
   box-shadow: -4px 0 20px rgba(0,0,0,0.03); 
   position: relative;
   z-index: 10;
@@ -367,7 +372,7 @@ body {
 }
 .customer-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
 
-.bill-items { flex: 1; overflow-y: auto; margin: 20px 0; padding-right: 5px; }
+.bill-items { flex: 1; overflow-y: auto; margin: 20px 0; padding-right: 5px; min-height: 0;  }
 .bill-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9fafb; }
 .bill-item-price { font-weight: 700; font-size: 14px; }
 .btn-remove-item { background: #fee2e2; color: var(--danger); width: 26px; height: 26px; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; }
@@ -573,3 +578,309 @@ body {
   .sidebar, .bill-sidebar { display: none; }
   .food-img-circle { display: none; }
 }
+
+/* App.css - The "Silver Bullet" Fix */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #00A3E0; 
+  --primary-light: #E0F7FF; 
+  --secondary: #1F2937;
+  --success: #10B981;
+  --bg: #F9FAFB;
+  --white: #FFFFFF;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border: #F3F4F6;
+  --danger: #ef4444;
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-float: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { 
+  font-family: 'Poppins', sans-serif; 
+  background: var(--bg); 
+  color: var(--text-main); 
+  /* Prevent the whole browser page from bouncing/scrolling */
+  overflow: hidden; 
+  width: 100%;
+}
+
+/* --- THE MAIN LAYOUT ENGINE --- */
+.pos-layout { 
+  display: grid; 
+  /* Default Desktop: [Nav] [Main Content] [Cart] */
+  grid-template-columns: 260px 1fr 360px; 
+  grid-template-rows: 1fr;
+  
+  /* THE FIX: Use dvh (Dynamic Viewport Height) to handle iPad/Mobile browser bars */
+  height: 100vh;      /* Fallback for old devices */
+  height: 100dvh;     /* The real fix for iOS */
+  
+  width: 100vw;
+  overflow: hidden;   /* Container never scrolls, only children do */
+}
+
+/* --- 1. LEFT SIDEBAR (Navigation) --- */
+.sidebar { 
+  background: var(--white); 
+  padding: 25px; 
+  border-right: 1px solid var(--border);
+  box-shadow: 4px 0 20px rgba(0,0,0,0.03); 
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  overflow-y: auto; /* Allow scroll if screen is tiny vertically */
+}
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; flex-shrink: 0; }
+.logo-box { 
+  background: var(--primary); color: white; width: 38px; height: 38px; 
+  border-radius: 10px; display: grid; place-items: center; font-weight: 700; 
+}
+.nav-links { display: flex; flex-direction: column; gap: 8px; }
+.nav-item { 
+  padding: 12px 16px; border-radius: 12px; cursor: pointer; font-weight: 500; 
+  color: var(--text-muted); transition: all 0.2s ease; 
+}
+.nav-item:hover { background: #f9fafb; color: var(--primary); }
+.nav-item.active { 
+  background: var(--primary-light); color: var(--primary); font-weight: 600; 
+}
+
+/* --- 2. CENTER (Main Viewport) --- */
+.main-viewport { 
+  padding: 20px; 
+  overflow-y: auto; /* Enable vertical scrolling for content */
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+  background: var(--bg); 
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Areas */
+.top-header { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.pos-search-wrapper { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
+.top-search { 
+  width: 100%; max-width: 450px; padding: 12px 20px; border-radius: 14px; 
+  border: 1px solid #E5E7EB; outline: none; font-size: 15px; 
+  box-shadow: var(--shadow-sm); 
+}
+.category-filter-bar { 
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; 
+  scrollbar-width: none; /* Hide scrollbar for cleaner look */
+}
+.category-filter-bar::-webkit-scrollbar { display: none; }
+
+.cat-filter-btn { 
+  background: white; border: 1px solid #E5E7EB; padding: 8px 16px; 
+  border-radius: 10px; font-size: 13px; color: var(--text-muted); 
+  cursor: pointer; white-space: nowrap; transition: 0.2s; 
+}
+.cat-filter-btn.active { 
+  background: var(--primary); color: white; border-color: var(--primary); 
+}
+
+/* Product Grid */
+.product-grid { 
+  display: grid; 
+  /* Smart Auto-Fill: Adds more columns automatically on wider screens */
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 15px; 
+  padding-bottom: 20px; 
+}
+.food-card { 
+  background: white; padding: 15px; border-radius: 16px; text-align: center; 
+  box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.5); 
+  display: flex; flex-direction: column; justify-content: space-between;
+  height: 100%;
+}
+.food-card h4 { font-size: 14px; margin: 10px 0 5px; line-height: 1.2; }
+.food-price { color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+.weight-selector input { 
+  width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb; 
+  text-align: center; margin-bottom: 8px; font-size: 14px; 
+}
+.add-btn { 
+  background: var(--primary); color: white; padding: 8px; width: 100%; 
+  border-radius: 8px; border: none; font-weight: 600; cursor: pointer; 
+}
+
+/* --- 3. RIGHT SIDEBAR (Checkout / Cart) --- */
+.bill-sidebar { 
+  background: var(--white); 
+  padding: 20px; 
+  border-left: 1px solid var(--border); 
+  box-shadow: -4px 0 20px rgba(0,0,0,0.03); 
+  z-index: 20;
+
+  /* --- SCROLL BUG FIX --- */
+  display: flex; 
+  flex-direction: column; 
+  height: 100%; 
+  overflow: hidden; /* Stops the sidebar itself from scrolling out of view */
+}
+
+.bill-header { flex-shrink: 0; margin-bottom: 15px; }
+.order-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.customer-input { 
+  width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #E5E7EB; 
+  margin-top: 8px; outline: none; font-size: 14px; 
+}
+
+/* THE LIST SCROLL FIX */
+.bill-items { 
+  flex: 1; /* Takes all available remaining space */
+  overflow-y: auto; /* Enables scroll ONLY inside this area */
+  margin: 10px 0; 
+  padding-right: 5px; 
+  min-height: 0; /* Flexbox quirk fix */
+}
+
+.bill-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f9fafb; font-size: 13px; }
+.bill-footer { 
+  flex-shrink: 0; /* Pins this to bottom */
+  border-top: 2px solid #f9fafb; padding-top: 15px; 
+}
+.total-line { font-size: 22px; font-weight: 800; margin-bottom: 15px; display: flex; justify-content: space-between; }
+.btn-checkout { 
+  background: var(--primary); color: white; width: 100%; padding: 15px; 
+  font-weight: 700; border-radius: 12px; border: none; cursor: pointer; 
+  font-size: 15px; 
+}
+.btn-navy { background: #f3f4f6; color: var(--text-main); width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 10px; border: none; cursor: pointer; }
+
+/* --- UTILITIES --- */
+.toast-notification { 
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+  background: var(--secondary); color: white; padding: 12px 30px; 
+  border-radius: 50px; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+}
+
+/* --- AUTOMATIC RESPONSIVENESS (The Magic Part) --- */
+
+/* 1. TABLET LANDSCAPE (iPad Air/Pro Landscape) */
+@media (max-width: 1180px) {
+  .pos-layout {
+    grid-template-columns: 80px 1fr 280px; /* Shrink sidebar to icons only */
+  }
+  .brand h2, .nav-item { font-size: 10px; text-align: center; } 
+  .brand { justify-content: center; }
+  .brand h2 { display: none; } /* Hide Brand Name, keep Logo */
+  .nav-item { padding: 10px 5px; }
+}
+
+/* 2. PORTRAIT MODE (iPad Vertical / Phones) */
+/* This automatically STACKS the layout so nothing is cut off */
+@media (max-width: 900px) {
+  .pos-layout {
+    grid-template-columns: 1fr; /* Single Column */
+    grid-template-rows: 60px 1fr auto; /* [Nav Bar] [Content] [Cart Sheet] */
+  }
+
+  /* Transform Sidebar to Top Nav */
+  .sidebar {
+    grid-row: 1;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    padding: 0 15px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    border-right: none;
+    overflow-x: auto;
+  }
+  .brand { margin-bottom: 0; margin-right: 20px; }
+  .brand h2 { display: none; }
+  .nav-links { flex-direction: row; gap: 5px; }
+  .nav-item { white-space: nowrap; font-size: 12px; }
+
+  /* Main Content Area */
+  .main-viewport {
+    grid-row: 2;
+    padding: 15px;
+  }
+
+  /* Cart / Checkout - Becomes a Bottom Sheet */
+  .bill-sidebar {
+    grid-row: 3;
+    width: 100%;
+    height: auto; 
+    max-height: 40vh; /* Takes up max 40% of screen height */
+    border-left: none;
+    border-top: 1px solid #ccc;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    padding: 10px 15px;
+  }
+  .bill-header { display: none; } /* Hide header to save space */
+  .bill-items { display: none; } /* Hide items list by default on portrait to save space */
+  
+  /* Show only Total and Checkout Button */
+  .total-line { margin-bottom: 5px; font-size: 18px; }
+  .btn-checkout { padding: 10px; }
+  
+  /* Optional: You could add a toggle button to show .bill-items, 
+     but for now, this ensures the app is USABLE without being cut off. */
+}
+
+/* --- FIX: PREVENT CATEGORY/NAME OVERLAP --- */
+
+.food-card {
+  /* Ensure the card stacks items vertically */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 15px;
+  position: relative;
+}
+
+.card-cat {
+  /* 1. Stop it from floating over text */
+  position: relative; 
+  top: auto; 
+  right: auto; 
+  left: auto;
+  
+  /* 2. Move it to the top-left corner */
+  align-self: flex-start; 
+  
+  /* 3. Push everything else down */
+  margin-bottom: 10px; 
+  
+  /* 4. Keep the pill styling */
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.food-img-circle {
+  /* Ensure image circle has space */
+  width: 60px;
+  height: 60px;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  margin-bottom: 10px; /* Space between image and name */
+  flex-shrink: 0; /* Prevent it from squishing */
+}
+
+.food-card h4 {
+  /* Ensure name has space */
+  margin: 0 0 5px 0;
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text-main);
+  width: 100%;
+}
+
