@@ -1,59 +1,43 @@
-=======
-# 🧺 Offline POS & Inventory System (iPad)
+# 🛒 POS iPad - Daddy Ely's POS & Inventory System
 
-A simple offline Point-of-Sale (POS) and inventory system built for a small fruits and vegetables business.
+A full-stack Point of Sale (POS) and inventory management web application optimized for iPad and tablet usage. Built with **React 19**, **Vite**, and **Supabase**, this system provides an intuitive interface to handle walk-in sales, track cloud-synced inventory, manage pre-orders, and generate delivery manifests.
 
-This project was created as a **learning project** and a **personal-use POS** for a family business.
+It is also configured with PWA (Progressive Web App) support, allowing it to be installed directly on devices for a native app-like experience.
 
----
-
-## 📌 Why this exists
-
-Small vendors often:
-- Don’t want monthly POS subscriptions
-- Don’t always have internet
-- Just need something simple and reliable
-
-This app runs **entirely in the browser** and stores data locally on the device.
-
----
-
-## 🛠 Tech Stack
-
-- **React** (Vite)
-- **JavaScript**
-- **HTML / CSS**
-- **localStorage** (acts as the database)
-- **PWA-ready** (offline-capable)
-
----
+⚠️ **Note on Authentication & Security:** Currently, this system operates without user authentication and is designed as an internal, trusted-device tool. Supabase keys are intentionally kept in `src/supabaseClient.js` for ease of internal use within a **Private Repository**. A full authentication system is planned for a future update. 
 
 ## ✨ Features
 
-- Add fruits & vegetables to inventory
-- Support for multiple units:
-  - Kilogram (kg)
-  - Grams (g)
-  - Per piece (pcs)
-  - Tali
-- Customer cart system
-- Manual weight input
-- Automatic price calculation
-- Complete orders
-- View completed orders
-- Remove completed orders (mistake handling)
-- Daily sales summary
-- View sales by selected date
-- Works offline after initial load
+- **🛒 Point of Sale (POS):** Browse products by category, specify custom weights/quantities, calculate subtotals, and process customer checkouts.
+- **📝 Pre-Order Management:** Record and track advance customer orders and aggregate shopping lists.
+- **📦 Cloud Inventory Management:** Add, edit, and delete products. Organize items by category, set prices, and specify units.
+- **📋 Order History:** View past transactions and manage completed orders.
+- **🧾 Digital Receipts:** Automatically generate and download image-based receipts for customers.
+- **🚚 Delivery Dashboard:** Track pending vs. delivered orders and generate printable rider manifests.
+- **⚡ Real-time Sync:** Powered by Supabase, ensuring data is instantly synchronized across devices.
+- **📱 PWA Ready:** Configured for Progressive Web App capabilities for offline installation.
 
----
+## 🛠️ Tech Stack
 
-## 🧠 How data is stored
+**Core:**
+- [React](https://react.dev/) (v19)
+- [Vite](https://vitejs.dev/) (v7)
+- [Supabase](https://supabase.com/) (`@supabase/supabase-js`)
 
-This app **does NOT use a backend or database**.
+**Styling & UI:**
+- Custom CSS with responsive, iPad-first media queries.
+- [Lucide React](https://lucide.dev/) for crisp, scalable UI icons.
+- [Fontsource Poppins](https://fontsource.org/fonts/poppins) for typography.
 
-All data is stored using:
+**Utilities:**
+- `html2canvas` for rendering UI elements into downloadable receipts.
+- `vite-plugin-pwa` for Progressive Web App support.
 
-```txt
-Browser localStorage
->>>>>>> f9e1d780a584324d911ca19ff747c6fafa2683c7
+## 📁 Project Structure
+
+- `src/App.jsx`: Core application component handling state management, view routing, and database logic.
+- `src/App.css`: Detailed styling, Grid/Flexbox layouts, and iPad landscape media queries.
+- `src/supabaseClient.js`: Supabase client connection initialization.
+- `src/main.jsx`: React application entry point.
+- `src/index.css`: Global baseline styles.
+- `package.json`: Project dependencies and configuration.
