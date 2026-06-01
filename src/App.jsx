@@ -283,11 +283,9 @@ function App() {
       }
     });
 
-    // Initialize all parsed non-warning/non-missing items as selected
+
+    // Start with nothing selected — user checks what they want
     const initialSelected = {};
-    [...results.increases, ...results.decreases, ...results.newItems, ...results.unchanged].forEach(item => {
-      initialSelected[item.id] = true;
-    });
 
     setParsedResults(results);
     setSelectedParsedItems(initialSelected);
