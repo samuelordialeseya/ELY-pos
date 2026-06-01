@@ -542,10 +542,24 @@ function App() {
       ];
     }
 
+    // Dynamic filtering to prevent driver.js from crashing on missing elements
+    const activeSteps = steps.filter(step => {
+      if (typeof step.element === 'string') {
+        const el = document.querySelector(step.element);
+        return el !== null && el.getBoundingClientRect().width > 0;
+      }
+      return true;
+    });
+
+    if (activeSteps.length === 0) {
+      showToast("No active tour elements found on this view!");
+      return;
+    }
+
     const tour = driver({
       showProgress: true,
       animate: true,
-      steps: steps,
+      steps: activeSteps,
       popoverClass: 'driverjs-theme'
     });
     
