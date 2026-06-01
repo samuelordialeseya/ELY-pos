@@ -286,6 +286,9 @@ function App() {
 
     // Start with nothing selected — user checks what they want
     const initialSelected = {};
+    [...results.increases, ...results.decreases, ...results.newItems, ...results.unchanged].forEach(item => {
+      initialSelected[item.id] = false;
+    });
 
     setParsedResults(results);
     setSelectedParsedItems(initialSelected);
