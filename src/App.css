@@ -2150,6 +2150,7 @@ body {
   align-items: center;
   z-index: 1000;
   padding: 20px;
+  overscroll-behavior: contain; /* Prevent background scroll */
 }
 
 .parser-modal-content {
@@ -2494,7 +2495,8 @@ body {
 .parser-table td {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
   padding: 8px 10px;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
