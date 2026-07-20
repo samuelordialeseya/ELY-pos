@@ -184,8 +184,8 @@ pos-ipad/
 ### Clone & Install
 
 ```bash
-git clone https://github.com/samuelordialeseya/ely-pos.git
-cd ely-pos
+git clone https://github.com/samuelordialeseya/fruit-pos.git
+cd fruit-pos
 npm install
 ```
 
