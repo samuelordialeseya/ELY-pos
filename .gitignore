@@ -25,3 +25,9 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Firebase & Secret Keys
+.firebase/
+*firebase-adminsdk*.json
+*serviceAccountKey*.json
+service-account*.json
