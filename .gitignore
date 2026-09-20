@@ -31,3 +31,11 @@ dist-ssr
 *firebase-adminsdk*.json
 *serviceAccountKey*.json
 service-account*.json
+
+# Scratch & Migration scripts
+compare_prices.cjs
+current_prices_list.json
+fetch_firebase_prices.js
+generate_markdown.cjs
+new_pricelist.txt
+price_differences.md
