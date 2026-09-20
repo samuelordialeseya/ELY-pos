@@ -1329,10 +1329,11 @@ body {
   font-family: 'Poppins', sans-serif;
   background: var(--bg);
   color: var(--text-main);
-  /* Prevent the whole browser page from bouncing/scrolling */
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
 }
+
 
 /* --- THE MAIN LAYOUT ENGINE --- */
 .pos-layout {
