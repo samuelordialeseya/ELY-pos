@@ -89,7 +89,7 @@ pos-ipad/
 - **Authentication**: [Firebase Auth](https://firebase.google.com/docs/auth)
 - **Database**: [Cloud Firestore](https://firebase.google.com/docs/firestore) (real-time listeners)
 - **Hosting**: [Firebase Hosting](https://firebase.google.com/docs/hosting)
-- **Icons**: [Lucide React](https://lucide.dev/)
+- **Icons**: [Phosphor Icons](https://phosphoricons.com/)
 - **Guided Tour**: [driver.js](https://driverjs.com/)
 - **Receipts**: [html2canvas](https://html2canvas.hertzen.com/)
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/)

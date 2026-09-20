@@ -367,8 +367,8 @@ export default function LandingPage({ onLaunchApp, onOpenAuth, onLaunchDemo, onS
             <span className="tech-pill-desc">Client-side Graphic Receipts</span>
           </div>
           <div className="tech-pill">
-            <span className="tech-pill-name">Lucide Icons</span>
-            <span className="tech-pill-desc">Crisp Squircle Iconography</span>
+            <span className="tech-pill-name">Phosphor Icons</span>
+            <span className="tech-pill-desc">Crisp & Modern Iconography</span>
           </div>
           <div className="tech-pill">
             <span className="tech-pill-name">Vite PWA</span>
