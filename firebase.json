@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "freshbyely",
+    "site": "elypos",
     "public": "dist",
     "ignore": [
       "firebase.json",

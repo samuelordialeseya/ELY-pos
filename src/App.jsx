@@ -4,33 +4,104 @@ import { db } from './firebaseClient';
 import { 
   collection, 
   doc, 
-  setDoc, 
   addDoc, 
   deleteDoc, 
   updateDoc, 
   onSnapshot, 
   query, 
-  orderBy, 
-  getDocs,
-  writeBatch
+  orderBy
 } from "firebase/firestore";
+
 import "./App.css";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Package, 
+  ClipboardList, 
+  Truck, 
+  RotateCw, 
+  Coins, 
+  Receipt, 
+  TrendingUp, 
+  Trophy, 
+  Clock, 
+  X, 
+  Sparkles, 
+  Check, 
+  Camera, 
+  Trash2, 
+  CheckCircle2, 
+  Info,
+  LogOut,
+  Store,
+  User as UserIcon
+} from "lucide-react";
+
+import { useAuth } from "./context/AuthContext";
+import LandingPage from "./components/LandingPage";
+import AuthPage from "./components/AuthPage";
+import OnboardingModal from "./components/OnboardingModal";
+import ConsumerStoryModal from "./components/ConsumerStoryModal";
+import { DEMO_PRODUCTS, DEMO_ORDERS } from "./data/demoSeed";
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Math.random().toString(36).substring(2, 15);
 };
 
+
 function App() {
+  const { 
+    user, 
+    isDemoMode, 
+    isStoreAdmin, 
+    enterDemoMode, 
+    logoutUser 
+  } = useAuth();
+
+  // Screen routing state: 'landing' | 'auth' | 'app'
+  const [screen, setScreen] = useState(() => {
+    if (window.location.hash === "#app") return "app";
+    if (window.location.hash === "#auth" || window.location.hash === "#login") return "auth";
+    if (localStorage.getItem("elypos_is_demo") === "true" || localStorage.getItem("elypos_store_admin") === "true") {
+      return "app";
+    }
+    return "landing";
+  });
+
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const isHidden = localStorage.getItem("elypos_hide_onboarding") === "true";
+    const isApp = window.location.hash === "#app" || localStorage.getItem("elypos_is_demo") === "true";
+    return isApp && !isHidden;
+  });
+
+  // Sync hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === "#app") {
+        setScreen("app");
+      } else if (hash === "#auth" || hash === "#login") {
+        setScreen("auth");
+      } else if (hash === "#landing" || hash === "") {
+        if (!user && !isDemoMode && !isStoreAdmin) {
+          setScreen("landing");
+        }
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [user, isDemoMode, isStoreAdmin]);
+
   const [view, setView] = useState("dashboard"); 
   
-  // --- CLOUD DATA STATES ---
-  const [fruits, setFruits] = useState([]);
-  const [completedOrders, setCompletedOrders] = useState([]);
-  // const [preOrders, setPreOrders] = useState([]); // Pre-order feature removed
-  const [customerCount, setCustomerCount] = useState(1);
+  // --- CLOUD DATA STATES (pre-seeded with demo data if in demo mode) ---
+  const [fruits, setFruits] = useState(() => isDemoMode ? DEMO_PRODUCTS : []);
+  const [completedOrders, setCompletedOrders] = useState(() => isDemoMode ? DEMO_ORDERS : []);
+  const [customerCount, setCustomerCount] = useState(() => isDemoMode ? 3 : 1);
 
   // --- LOCAL SESSION STATES ---
   const [cart, setCart] = useState([]); 
@@ -45,8 +116,6 @@ function App() {
 
   const [customer, setCustomer] = useState("");
   const [address, setAddress] = useState(""); 
-  // const [preOrderCustomer, setPreOrderCustomer] = useState(""); // Pre-order feature removed 
-  // const [preOrderCart, setPreOrderCart] = useState([]); // Pre-order feature removed 
   
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,25 +127,29 @@ function App() {
   const [toast, setToast] = useState("");
   const [weights, setWeights] = useState({});
 
-  // --- PARSER STATES ---
-  const [showParserModal, setShowParserModal] = useState(false);
+  // --- STORE BRANDING & STORY STATES ---
+  const [storeName, setStoreName] = useState(() => {
+    return localStorage.getItem("elypos_store_name") || "ElyPOS";
+  });
+  const [showConsumerStory, setShowConsumerStory] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const viewInfo = {
     dashboard: { title: "Dashboard Overview", text: "View your daily, weekly, or monthly store revenue and performance metrics. Use the date filters to see top-selling items and overall sales trends." },
     pos: { title: "Point of Sale (POS)", text: "Tap items to add them to the cart. For items sold per kg, adjust the quantity to match the exact weight. Add customer details and click 'Complete Transaction' to record the sale." },
-    inventory: { title: "Inventory Management", text: "Manage your product catalog. Add new items, edit prices, or delete outdated products. Use the 'Import from Price List' button to automatically update prices using the owner's daily text message." },
+    inventory: { title: "Inventory Management", text: "Manage your product catalog. Add new items, edit prices, set categories, and configure per-kg or per-unit pricing for all your products." },
     orders: { title: "Order History", text: "Review all past transactions. You can filter by date or search for a specific customer. Select an order to view its detailed receipt, which you can also download or print." },
     delivery: { title: "Delivery Manifests", text: "Create daily delivery sheets for your riders. Select the pending orders for the day, and a combined manifest will be generated for printing or saving." }
   };
-  const [parserInputText, setParserInputText] = useState("");
-  const [parsedResults, setParsedResults] = useState(null);
-  const [activeParserTab, setActiveParserTab] = useState("increases"); 
-  const [selectedParsedItems, setSelectedParsedItems] = useState({});
 
-  // --- 1. INITIAL DATA LOADING (Firestore real-time listeners) ---
+  // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
-    // 1. Products listener (ordered by name)
+    // If running in Demo Mode, demo items are already initialized in local state
+    if (isDemoMode) {
+      return;
+    }
+
+    // Production Mode (Dad's store / store admin / authenticated account): Real Firestore listeners
     const qProducts = query(collection(db, "products"), orderBy("name"));
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
       const prodList = [];
@@ -88,7 +161,6 @@ function App() {
       console.error("Products listener error:", error);
     });
 
-    // 2. Orders listener (ordered by created_at desc)
     const qOrders = query(collection(db, "orders"), orderBy("created_at", "desc"));
     const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       const orderList = [];
@@ -100,9 +172,6 @@ function App() {
       console.error("Orders listener error:", error);
     });
 
-    // Pre-order listener removed (feature deprecated)
-
-    // 4. App settings listener (global)
     const unsubSettings = onSnapshot(doc(db, "app_settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
         setCustomerCount(docSnap.data().customer_count);
@@ -114,10 +183,10 @@ function App() {
     return () => {
       unsubProducts();
       unsubOrders();
-      // unsubPreOrders(); // Pre-order listener removed
       unsubSettings();
     };
-  }, []);
+  }, [isDemoMode]);
+
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
@@ -133,6 +202,12 @@ function App() {
         category: category || "Uncategorized",
         created_at: new Date().toISOString()
       };
+      if (isDemoMode) {
+        setFruits(prev => [{ id: `demo-prod-${Date.now()}`, ...newFruit }, ...prev]);
+        setName(""); setPrice(""); setUnit(""); setCategory("");
+        showToast("Added to Demo Catalog");
+        return;
+      }
       try {
         await addDoc(collection(db, 'products'), newFruit);
         setName(""); setPrice(""); setUnit(""); setCategory("");
@@ -144,6 +219,11 @@ function App() {
   };
 
   const deleteFruit = async (id) => {
+    if (isDemoMode) {
+      setFruits(prev => prev.filter(f => f.id !== id));
+      showToast("Removed from Demo");
+      return;
+    }
     try {
       await deleteDoc(doc(db, 'products', id));
       showToast("Removed from Cloud");
@@ -159,191 +239,18 @@ function App() {
       unit: editFormData.unit, 
       category: editFormData.category 
     };
+    if (isDemoMode) {
+      setFruits(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
+      setEditingId(null); 
+      showToast("Demo Updated!");
+      return;
+    }
     try {
       await updateDoc(doc(db, 'products', id), updates);
       setEditingId(null); 
       showToast("Updated!");
     } catch (error) {
-      showToast("Error: " + error.message);
-    }
-  };
 
-  // --- PARSER ACTIONS ---
-  const runParser = () => {
-    if (!parserInputText.trim()) return;
-    
-    // Robust Matching Logic for Out-of-order words and Typos
-    const getSortedTokensStr = (n) => n.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean).sort().join('');
-    
-    const levenshtein = (a, b) => {
-      if (a.length === 0) return b.length;
-      if (b.length === 0) return a.length;
-      const matrix = Array.from({ length: b.length + 1 }, () => new Array(a.length + 1).fill(0));
-      for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-      for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
-      for (let j = 1; j <= b.length; j++) {
-        for (let i = 1; i <= a.length; i++) {
-          if (b[j - 1] === a[i - 1]) matrix[j][i] = matrix[j - 1][i - 1];
-          else matrix[j][i] = Math.min(matrix[j - 1][i - 1] + 1, matrix[j][i - 1] + 1, matrix[j - 1][i] + 1);
-        }
-      }
-      return matrix[b.length][a.length];
-    };
-
-    const isMatch = (rawName, dbName) => {
-      const sortedRaw = getSortedTokensStr(rawName);
-      const sortedDb = getSortedTokensStr(dbName);
-      if (sortedRaw === sortedDb) return true;
-      
-      // If not an exact token match, check typo distance
-      if (Math.abs(sortedRaw.length - sortedDb.length) > 2) return false;
-      const dist = levenshtein(sortedRaw, sortedDb);
-      const maxAllowed = sortedRaw.length > 5 ? 2 : 1;
-      return dist <= maxAllowed;
-    };
-
-    const results = {
-      increases: [],
-      decreases: [],
-      unchanged: [],
-      newItems: [],
-      warnings: [],
-      missing: []
-    };
-
-    // Stage 1: Filter lines
-    const lines = parserInputText.split('\n').filter(line => line.includes('•')).map(line => line.trim());
-    
-    const parsedItemsMap = {};
-
-    lines.forEach((line, index) => {
-      // Stage 2: Regex Extraction
-      // Look for everything before a separator (dash, multiple dots, single dot, or just space) and a number
-      const match = line.match(/^(.+?)(?:\s*-\s*|\s*\.\.+\s*|\s*\.\s*|\s+)(\d+)/);
-      
-      if (match) {
-        const rawName = match[1].replace(/^[•\s]+/, '').trim();
-        const price = parseFloat(match[2]);
-
-        // Stage 3 & 4: Normalize & Classify
-        const matchingItems = fruits.filter(f => isMatch(rawName, f.name));
-        let existingItem = null;
-
-        if (matchingItems.length === 1) {
-          existingItem = matchingItems[0];
-        } else if (matchingItems.length > 1) {
-          // Handle items with the same name but different units (e.g., okra kg vs okra tali)
-          const lineLower = line.toLowerCase();
-          existingItem = matchingItems.find(f => lineLower.includes(f.unit.toLowerCase()));
-          if (!existingItem) existingItem = matchingItems[0]; // fallback
-        }
-
-        if (existingItem) {
-          parsedItemsMap[existingItem.id] = true;
-          if (price > existingItem.price) {
-            results.increases.push({ ...existingItem, newPrice: price, rawLine: line, id: existingItem.id });
-          } else if (price < existingItem.price) {
-            results.decreases.push({ ...existingItem, newPrice: price, rawLine: line, id: existingItem.id });
-          } else {
-            results.unchanged.push({ ...existingItem, newPrice: price, rawLine: line, id: existingItem.id });
-          }
-        } else {
-          // Intelligent unit guessing for new items
-          let guessedUnit = 'kg'; // Default fallback
-          const unitMatch = line.toLowerCase().match(/\/\s*([a-z]+)/);
-          if (unitMatch && unitMatch[1] && unitMatch[1] !== 'pesos') {
-            guessedUnit = unitMatch[1];
-          } else {
-            const lineLower = line.toLowerCase();
-            if (lineLower.includes('tali')) guessedUnit = 'tali';
-            else if (lineLower.includes('tray')) guessedUnit = 'tray';
-            else if (lineLower.includes('bundle')) guessedUnit = 'bundle';
-            else if (lineLower.includes('pcs')) guessedUnit = 'pcs';
-            else if (lineLower.includes('pc')) guessedUnit = 'pc';
-          }
-
-          results.newItems.push({ 
-            id: `new_${index}`, 
-            name: rawName, 
-            newPrice: price, 
-            unit: guessedUnit,
-            rawLine: line 
-          });
-        }
-      } else {
-        // Warning: Bullet found but no price extracted
-        results.warnings.push({ id: `warn_${index}`, rawLine: line });
-      }
-    });
-
-    // Find Missing Items
-    fruits.forEach(f => {
-      if (!parsedItemsMap[f.id]) {
-        results.missing.push({ ...f, id: f.id });
-      }
-    });
-
-
-    // Start with nothing selected — user checks what they want
-    const initialSelected = {};
-    [...results.increases, ...results.decreases, ...results.newItems, ...results.unchanged].forEach(item => {
-      initialSelected[item.id] = false;
-    });
-
-    setParsedResults(results);
-    setSelectedParsedItems(initialSelected);
-    
-    // Auto-switch tab to the first one with items
-    if (results.increases.length > 0) setActiveParserTab('increases');
-    else if (results.decreases.length > 0) setActiveParserTab('decreases');
-    else if (results.newItems.length > 0) setActiveParserTab('newItems');
-    else if (results.warnings.length > 0) setActiveParserTab('warnings');
-    else if (results.missing.length > 0) setActiveParserTab('missing');
-    else setActiveParserTab('unchanged');
-  };
-
-  const applyParsedUpdates = async () => {
-    if (!parsedResults) return;
-
-    try {
-      const batch = writeBatch(db);
-      let updateCount = 0;
-      let insertCount = 0;
-
-      // Handle Increases, Decreases (do not update Unchanged to save database writes)
-      const allExistingToUpdate = [...parsedResults.increases, ...parsedResults.decreases];
-      allExistingToUpdate.forEach(item => {
-        if (selectedParsedItems[item.id]) {
-          const docRef = doc(db, 'products', item.id);
-          batch.update(docRef, { price: item.newPrice });
-          updateCount++;
-        }
-      });
-
-      // Handle New Items
-      const newItemsRef = collection(db, 'products');
-      parsedResults.newItems.forEach(item => {
-        if (selectedParsedItems[item.id]) {
-          const newDocRef = doc(newItemsRef); // Auto-generate ID
-          batch.set(newDocRef, {
-            name: item.name,
-            price: item.newPrice,
-            unit: item.unit, // Use the guessed unit
-            category: 'Uncategorized', // Default
-            created_at: new Date().toISOString()
-          });
-          insertCount++;
-        }
-      });
-
-      await batch.commit();
-      
-      showToast(`Applied ${updateCount} updates and ${insertCount} new items!`);
-      setShowParserModal(false);
-      setParsedResults(null);
-      setParserInputText("");
-      
-    } catch (error) {
       showToast("Error: " + error.message);
     }
   };
@@ -384,6 +291,14 @@ function App() {
         order_type: 'pos'
     };
 
+    if (isDemoMode) {
+      setCompletedOrders(prev => [{ id: `demo-order-${Date.now()}`, ...newOrder }, ...prev]);
+      setCustomerCount(prev => prev + 1);
+      setCart([]); setCustomer(""); setAddress("");
+      showToast("Demo Transaction Saved!");
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       await updateDoc(doc(db, 'app_settings', 'global'), { customer_count: customerCount + 1 });
@@ -396,6 +311,11 @@ function App() {
 
   const deleteOrder = async (id) => {
     if(!window.confirm("Delete this order record permanently?")) return;
+    if (isDemoMode) {
+      setCompletedOrders(prev => prev.filter(o => o.id !== id));
+      showToast("Demo Order Deleted");
+      return;
+    }
     try {
       await deleteDoc(doc(db, 'orders', id));
       showToast("Order Deleted");
@@ -406,10 +326,16 @@ function App() {
 
   const toggleDeliveryStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === "Delivered" ? "Pending" : "Delivered";
+    if (isDemoMode) {
+      setCompletedOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
+      showToast("Status Updated");
+      return;
+    }
     try {
       await updateDoc(doc(db, 'orders', id), { status: newStatus });
       showToast("Status Updated");
     } catch (error) {
+
       showToast("Error: " + error.message);
     }
   };
@@ -526,7 +452,6 @@ function App() {
     } else if (view === "inventory") {
       steps = [
         { element: '.top-search', popover: { title: 'Search Inventory', description: 'Quickly find an item to edit or delete.', side: "bottom", align: 'start' } },
-        { element: '.btn-save-inv', popover: { title: 'Price List Importer', description: 'Use the automated parser to import the daily price text message from the owner.', side: "left", align: 'start' } },
         { element: '.inv-form-card', popover: { title: 'Add New Item', description: 'Fill in the details to add a completely new product to your catalog.', side: "bottom", align: 'start' } },
         { element: '.inv-table', popover: { title: 'Product List', description: 'View, edit, or delete existing products. Changes here will reflect immediately on the POS.', side: "top", align: 'start' } },
       ];
@@ -566,48 +491,124 @@ function App() {
     tour.drive();
   };
 
-  // --- RENDER ---
+  // --- RENDER SCREEN DISPATCH ---
+  if (screen === "landing") {
+    return (
+      <LandingPage 
+        onLaunchApp={() => {
+          setScreen("app");
+          window.location.hash = "#app";
+        }}
+        onOpenAuth={() => {
+          setScreen("auth");
+          window.location.hash = "#auth";
+        }}
+        onLaunchDemo={() => {
+          enterDemoMode();
+          setScreen("app");
+          window.location.hash = "#app";
+        }}
+        onStartConsumerStory={() => {
+          enterDemoMode();
+          setScreen("app");
+          window.location.hash = "#app";
+          setShowConsumerStory(true);
+        }}
+      />
+    );
+  }
+
+  if (screen === "auth") {
+    return (
+      <AuthPage 
+        onBackToLanding={() => {
+          setScreen("landing");
+          window.location.hash = "#landing";
+        }}
+        onSuccessLogin={() => {
+          setScreen("app");
+          window.location.hash = "#app";
+        }}
+      />
+    );
+  }
+
+  // --- RENDER MAIN POS TERMINAL ---
   return (
     <div className="pos-layout">
       <aside className="sidebar">
-        <div className="brand">
-          <div className="logo-box">FBE</div>
-          <h2 className="brand-text">FreshByEly</h2>
+        <div className="brand" title="Active Store">
+          <div className="logo-box">
+            {storeName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "EP"}
+          </div>
+          <h2 className="brand-text">{storeName}</h2>
         </div>
         <nav className="nav-links">
           <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>
-            <span className="nav-icon">📊</span>
+            <span className="nav-icon nav-icon-dashboard"><LayoutDashboard size={18} /></span>
             <span className="nav-text">Dashboard</span>
           </div>
           <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => setView('pos')}>
-            <span className="nav-icon">🛒</span>
+            <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} /></span>
             <span className="nav-text">POS</span>
           </div>
           <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>
-            <span className="nav-icon">📦</span>
+            <span className="nav-icon nav-icon-inventory"><Package size={18} /></span>
             <span className="nav-text">Inventory</span>
           </div>
           <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => setView('orders')}>
-            <span className="nav-icon">📋</span>
+            <span className="nav-icon nav-icon-orders"><ClipboardList size={18} /></span>
             <span className="nav-text">History</span>
           </div>
           <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => setView('delivery')}>
-            <span className="nav-icon">🚚</span>
+            <span className="nav-icon nav-icon-delivery"><Truck size={18} /></span>
             <span className="nav-text">Delivery</span>
           </div>
         </nav>
         <div className="sidebar-footer">
+          {isDemoMode && (
+            <div className="sidebar-mode-pill demo">
+              <Sparkles size={13} />
+              <span>Demo Sandbox</span>
+            </div>
+          )}
+          {isStoreAdmin && (
+            <div className="sidebar-mode-pill admin">
+              <Store size={13} />
+              <span>Ely's Store Admin</span>
+            </div>
+          )}
+          {user && !isStoreAdmin && !isDemoMode && (
+            <div className="sidebar-mode-pill user">
+              <UserIcon size={13} />
+              <span>{user.displayName || user.email}</span>
+            </div>
+          )}
+
           <button 
             onClick={() => {
-              if (window.confirm("⚠️ Are you sure you want to reload the app? Any unsaved items in your checkout cart will be completely lost.")) {
+              if (window.confirm("Are you sure you want to reload the app? Any unsaved items in your checkout cart will be completely lost.")) {
                 window.location.reload();
               }
             }} 
             className="btn-reload" 
             title="Reload App"
           >
-            <span className="reload-icon">🔄</span>
+            <span className="reload-icon nav-icon-reload"><RotateCw size={15} /></span>
             <span className="reload-text">Reload App</span>
+          </button>
+
+          <button 
+            className="btn-signout"
+            onClick={async () => {
+              await logoutUser();
+              setScreen("landing");
+              window.location.hash = "#landing";
+            }}
+            title="Exit Session"
+          >
+            <LogOut size={14} />
+            <span>{isDemoMode ? "Exit Demo" : isStoreAdmin ? "Switch Store" : "Sign Out"}</span>
           </button>
         </div>
       </aside>
@@ -619,7 +620,7 @@ function App() {
               {view === 'dashboard' ? (
                 <div className="dash-header-greeting">
                   <h2 className="dash-greeting-text">
-                    {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; })()}, FreshByEly! 👋
+                    {(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; })()}, {storeName}!
                   </h2>
                   <p className="dash-greeting-sub">Here's your store overview.</p>
                 </div>
@@ -628,12 +629,13 @@ function App() {
               )}
             </div>
             <div className="header-right-info" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button className="btn-help-icon" onClick={startTour} title="Guided Tour">
+              <button className="btn-help-icon" onClick={() => setShowOnboarding(true)} title="Setup Guide & Tour">
                 ?
               </button>
               <div className="info-pill"><span className="pill-label">Today</span><span className="pill-value">{new Date().toLocaleDateString()}</span></div>
             </div>
           </div>
+
           {view === 'pos' && (
             <div className="pos-search-wrapper">
               <input type="text" className="top-search" placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
@@ -692,28 +694,28 @@ function App() {
             {/* Metric Cards */}
             <div className="dash-metric-grid">
               <div className="dash-metric-card dash-revenue">
-                <div className="dash-metric-icon">💰</div>
+                <div className="dash-metric-icon"><Coins size={28} /></div>
                 <div className="dash-metric-body">
                   <span className="dash-metric-label">Total Revenue</span>
                   <span className="dash-metric-value">₱{dashRevenue.toFixed(2)}</span>
                 </div>
               </div>
               <div className="dash-metric-card dash-tx">
-                <div className="dash-metric-icon">🧾</div>
+                <div className="dash-metric-icon"><Receipt size={28} /></div>
                 <div className="dash-metric-body">
                   <span className="dash-metric-label">Transactions</span>
                   <span className="dash-metric-value">{dashTxCount}</span>
                 </div>
               </div>
               <div className="dash-metric-card dash-avg">
-                <div className="dash-metric-icon">📈</div>
+                <div className="dash-metric-icon"><TrendingUp size={28} /></div>
                 <div className="dash-metric-body">
                   <span className="dash-metric-label">Avg. Order Value</span>
                   <span className="dash-metric-value">₱{dashAvg.toFixed(2)}</span>
                 </div>
               </div>
               <div className="dash-metric-card dash-items">
-                <div className="dash-metric-icon">📦</div>
+                <div className="dash-metric-icon"><Package size={28} /></div>
                 <div className="dash-metric-body">
                   <span className="dash-metric-label">Items Sold</span>
                   <span className="dash-metric-value">{dashItemsSold}</span>
@@ -725,7 +727,7 @@ function App() {
             <div className="dash-panels">
               <div className="dash-panel">
                 <div className="dash-panel-header">
-                  <h4>🏆 Top Sellers</h4>
+                  <h4><span className="panel-header-icon panel-icon-trophy"><Trophy size={16} /></span> Top Sellers</h4>
                   <span className="dash-panel-sub">by revenue</span>
                 </div>
                 {dashTopSellers.length === 0 ? (
@@ -748,7 +750,7 @@ function App() {
 
               <div className="dash-panel">
                 <div className="dash-panel-header">
-                  <h4>🕐 Recent Orders</h4>
+                  <h4><span className="panel-header-icon panel-icon-recent"><Clock size={16} /></span> Recent Orders</h4>
                   <span className="dash-panel-sub">last 5</span>
                 </div>
                 {dashRecentOrders.length === 0 ? (
@@ -782,9 +784,6 @@ function App() {
                   ))}
                 </div>
               </div>
-              <button className="btn-save-inv" style={{ background: 'var(--success)', whiteSpace: 'nowrap', width: 'auto', flexShrink: 0 }} onClick={() => setShowParserModal(true)}>
-                Import from Price List
-              </button>
             </div>
              <div className="inv-form-card">
               <div className="form-grid">
@@ -795,107 +794,6 @@ function App() {
               </div>
               <button className="btn-save-inv" onClick={addFruit}>+ Add to Inventory</button>
             </div>
-
-            {/* PARSER MODAL */}
-            {showParserModal && (
-              <div className="parser-modal-overlay">
-                <div className="parser-modal-content">
-                  <div className="parser-modal-header">
-                    <h3>Import Daily Price List</h3>
-                    <button className="parser-close-btn" onClick={() => { setShowParserModal(false); setParsedResults(null); setParserInputText(""); }}>✕</button>
-                  </div>
-                  
-                  {!parsedResults ? (
-                    <div className="parser-input-step">
-                      <p>Paste the owner's daily price broadcast below. The local parser will automatically extract items and prices.</p>
-                      <textarea 
-                        className="parser-textarea" 
-                        placeholder="Paste text here..."
-                        value={parserInputText}
-                        onChange={(e) => setParserInputText(e.target.value)}
-                      />
-                      <button className="btn-parse-run" onClick={runParser}>🚀 Parse Text</button>
-                    </div>
-                  ) : (
-                    <div className="parser-review-step">
-                      <div className="parser-tabs">
-                        {['increases', 'decreases', 'newItems', 'warnings', 'missing'].map(tabKey => (
-                          <button 
-                            key={tabKey}
-                            className={`parser-tab-btn ${activeParserTab === tabKey ? 'active' : ''}`}
-                            onClick={() => setActiveParserTab(tabKey)}
-                          >
-                            {tabKey.replace('newItems', 'New').charAt(0).toUpperCase() + tabKey.replace('newItems', 'New').slice(1)} 
-                            <span className="parser-badge">{parsedResults[tabKey].length}</span>
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="parser-table-container">
-                        <table className="parser-table">
-                          <thead>
-                            <tr>
-                              <th>Select</th>
-                              <th>Product</th>
-                              {(activeParserTab === 'newItems' || activeParserTab === 'missing') && <th>Unit</th>}
-                              {activeParserTab !== 'warnings' && activeParserTab !== 'missing' && <th>New Price</th>}
-                              {(activeParserTab === 'increases' || activeParserTab === 'decreases' || activeParserTab === 'missing') && <th>{activeParserTab === 'missing' ? 'Current Price' : 'Old Price'}</th>}
-                              {activeParserTab === 'warnings' && <th>Raw Line</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {parsedResults[activeParserTab].map((item, idx) => (
-                              <tr key={item.id || idx} className={
-                                activeParserTab === 'increases' ? 'row-increase' : 
-                                activeParserTab === 'decreases' ? 'row-decrease' : 
-                                activeParserTab === 'warnings' ? 'row-warning' : ''
-                              }>
-                                <td>
-                                  {activeParserTab !== 'warnings' && activeParserTab !== 'missing' ? (
-                                    <input 
-                                      type="checkbox" 
-                                      checked={!!selectedParsedItems[item.id]}
-                                      onChange={() => setSelectedParsedItems(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                                    />
-                                  ) : (
-                                    <span>-</span>
-                                  )}
-                                </td>
-                                <td>{item.name || "Unknown"}</td>
-                                {(activeParserTab === 'newItems' || activeParserTab === 'missing') && <td><span style={{color: 'var(--primary)', fontWeight: 'bold'}}>{item.unit}</span></td>}
-                                {activeParserTab !== 'warnings' && activeParserTab !== 'missing' && <td>₱{item.newPrice}</td>}
-                                {(activeParserTab === 'increases' || activeParserTab === 'decreases' || activeParserTab === 'missing') && <td>₱{item.price}</td>}
-                                {activeParserTab === 'warnings' && <td><code>{item.rawLine}</code></td>}
-                              </tr>
-                            ))}
-                            {parsedResults[activeParserTab].length === 0 && (
-                              <tr>
-                                <td 
-                                  colSpan={
-                                    activeParserTab === 'increases' || activeParserTab === 'decreases' ? 5 :
-                                    activeParserTab === 'newItems' || activeParserTab === 'missing' ? 4 :
-                                    activeParserTab === 'warnings' ? 3 : 4
-                                  } 
-                                  style={{textAlign: 'center', padding: '20px', color: 'var(--text-muted)'}}
-                                >
-                                  No items in this category.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <div className="parser-modal-footer">
-                        <button className="btn-apply-parsed" onClick={applyParsedUpdates}>
-                          ✓ Apply Selected Updates
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             <table className="inv-table">
               <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Unit</th><th>Actions</th></tr></thead>
@@ -943,7 +841,7 @@ function App() {
                     onChange={e => setHistorySearch(e.target.value)}
                   />
                   {historySearch && (
-                    <button className="history-search-clear" onClick={() => setHistorySearch('')}>✕</button>
+                    <button className="history-search-clear" onClick={() => setHistorySearch('')}><X size={14} /></button>
                   )}
                 </div>
               </div>
@@ -957,10 +855,10 @@ function App() {
             )}
             {historyFilteredOrders.map(o => (
               <div key={o.id} className="history-card" id={`receipt-${o.id}`}>
-                <div className="receipt-brand-header">
-                   <h3>FRESH BY ELY FRUITS &amp; VEGGIES</h3>
-                   <p>Fresh from the farm to your table.</p>
-                </div>
+                 <div className="receipt-brand-header">
+                    <h3>{storeName.toUpperCase()}</h3>
+                    <p>Point of Sale Terminal</p>
+                 </div>
                 <div className="receipt-divider"></div>
                 <div className="receipt-body">
                   <div className="receipt-left">
@@ -977,13 +875,13 @@ function App() {
                   <div className="receipt-right">
                     <span className="h-total-amount">₱{(o.total || 0).toFixed(2)}</span>
                     <div className="h-actions no-print">
-                      <button className="btn-screenshot" onClick={() => downloadReceipt(o.id)}>📸</button>
-                      <button className="btn-delete-order" onClick={() => deleteOrder(o.id)}>🗑️</button>
+                      <button className="btn-screenshot" onClick={() => downloadReceipt(o.id)} title="Download Receipt"><Camera size={16} /></button>
+                      <button className="btn-delete-order" onClick={() => deleteOrder(o.id)} title="Delete Order"><Trash2 size={16} /></button>
                     </div>
                   </div>
                 </div>
                 <div className="receipt-divider"></div>
-                <div className="receipt-footer"><p>Thank you for shopping at Fresh By Ely!</p></div>
+                <div className="receipt-footer"><p>Thank you for shopping at {storeName}!</p></div>
               </div>
             ))}
           </div>
@@ -1002,7 +900,7 @@ function App() {
                     <div className="sel-click-area" onClick={() => setSelectedOrderIds(prev => prev.includes(o.id) ? prev.filter(i => i !== o.id) : [...prev, o.id])}>
                        <input type="checkbox" checked={selectedOrderIds.includes(o.id)} readOnly />
                        <div className="o-info">
-                         <strong>{o.customer_name} {o.status === 'Delivered' && "✅"}</strong>
+                         <strong>{o.customer_name} {o.status === 'Delivered' && <CheckCircle2 size={16} className="status-delivered-icon" />}</strong>
                          <p>{o.address}</p>
                        </div>
                     </div>
@@ -1017,11 +915,11 @@ function App() {
             <div className="delivery-step-preview">
               <div className="preview-top-bar">
                 <h4>2. Manifest Preview</h4>
-                {selectedOrderIds.length > 0 && <button className="btn-download-manifest" onClick={captureManifest}>📸 Download Image</button>}
+                {selectedOrderIds.length > 0 && <button className="btn-download-manifest" onClick={captureManifest}><Camera size={16} /> Download Image</button>}
               </div>
               <div id="manifest-area-capture" className="manifest-sheet">
                 <div className="manifest-header">
-                  <h2>FRESH BY ELY RIDER MANIFEST</h2>
+                  <h2>ELY'S RIDER MANIFEST</h2>
                   <div className="manifest-meta"><span>Date: {filterDate}</span><span>Rider: _________________</span></div>
                 </div>
                 <table className="manifest-table">
@@ -1055,7 +953,7 @@ function App() {
         <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
         <div className="bill-item-right">
           <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
-          <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))}>✕</button>
+          <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))} title="Remove item"><X size={14} /></button>
         </div>
       </div>
     ))}
@@ -1069,7 +967,7 @@ function App() {
       {showInfoModal && (
         <div className="parser-modal-overlay" onClick={() => setShowInfoModal(false)}>
           <div className="parser-modal-content info-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center', padding: '30px' }}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>ℹ️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px', color: 'var(--primary)' }}><Info size={40} /></div>
             <h3 style={{ marginBottom: '10px', color: 'var(--secondary)' }}>{viewInfo[view]?.title}</h3>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '15px', marginBottom: '25px' }}>
               {viewInfo[view]?.text}
@@ -1080,9 +978,45 @@ function App() {
           </div>
         </div>
       )}
+
+      <OnboardingModal 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+        onStartTour={startTour} 
+      />
+
+      <ConsumerStoryModal 
+        isOpen={showConsumerStory}
+        onClose={() => setShowConsumerStory(false)}
+        currentStoreName={storeName}
+        onUpdateStoreName={(newName) => {
+          setStoreName(newName);
+          localStorage.setItem("elypos_store_name", newName);
+          showToast(`Store renamed to ${newName}!`);
+        }}
+        onNavigateView={(newView) => setView(newView)}
+        onAddSampleProduct={(sample) => {
+          const newProd = {
+            id: `sample-${Date.now()}`,
+            name: sample.name,
+            price: sample.price,
+            unit: sample.unit,
+            category: sample.category,
+            created_at: new Date().toISOString()
+          };
+          setFruits(prev => [newProd, ...prev]);
+          showToast(`Added ${sample.name} to Catalog!`);
+        }}
+        onOpenAuth={() => {
+          setScreen("auth");
+          window.location.hash = "#auth";
+        }}
+      />
+
       {toast && <div className="toast-notification">{toast}</div>}
     </div>
   );
 }
+
 
 export default App;
