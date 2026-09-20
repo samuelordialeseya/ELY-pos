@@ -243,10 +243,10 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
 
           <button 
             type="submit" 
-            className="auth-submit-btn" 
+            className="auth-submit-btn auth-btn-primary" 
             disabled={loading}
           >
-            {loading ? "Processing..." : isSignUp ? "Create Store Account" : "Sign In to Terminal"}
+            {loading ? "Please wait..." : isSignUp ? "Create Account" : "Sign In"}
           </button>
         </form>
 
@@ -272,6 +272,34 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
             <span>Sign in with Google</span>
           </button>
         </div>
+
+        {/* Switch Mode Footer */}
+        <div className="auth-switch-mode">
+          {isSignUp ? (
+            <span>
+              Already have an account?{" "}
+              <button 
+                type="button" 
+                className="auth-switch-btn" 
+                onClick={() => { setIsSignUp(false); setError(""); setSuccessMsg(""); }}
+              >
+                Sign In
+              </button>
+            </span>
+          ) : (
+            <span>
+              Don't have an account yet?{" "}
+              <button 
+                type="button" 
+                className="auth-switch-btn" 
+                onClick={() => { setIsSignUp(true); setError(""); setSuccessMsg(""); }}
+              >
+                Create Account
+              </button>
+            </span>
+          )}
+        </div>
+
       </div>
     </div>
   );
