@@ -44,7 +44,7 @@ import LandingPage from "./components/LandingPage";
 import AuthPage from "./components/AuthPage";
 import OnboardingModal from "./components/OnboardingModal";
 import ConsumerStoryModal from "./components/ConsumerStoryModal";
-import { DEMO_PRODUCTS, DEMO_ORDERS } from "./data/demoSeed";
+import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders } from "./data/demoSeed";
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -100,8 +100,8 @@ function App() {
   
   // --- CLOUD DATA STATES (pre-seeded with demo data if in demo mode) ---
   const [fruits, setFruits] = useState(() => isDemoMode ? DEMO_PRODUCTS : []);
-  const [completedOrders, setCompletedOrders] = useState(() => isDemoMode ? DEMO_ORDERS : []);
-  const [customerCount, setCustomerCount] = useState(() => isDemoMode ? 3 : 1);
+  const [completedOrders, setCompletedOrders] = useState(() => isDemoMode ? getDemoOrders() : []);
+  const [customerCount, setCustomerCount] = useState(() => isDemoMode ? 5 : 1);
 
   // --- LOCAL SESSION STATES ---
   const [cart, setCart] = useState([]); 
@@ -129,6 +129,7 @@ function App() {
 
   // --- STORE BRANDING & STORY STATES ---
   const [storeName, setStoreName] = useState(() => {
+    if (isDemoMode) return "Fresh Express Demo";
     return localStorage.getItem("elypos_store_name") || "ElyPOS";
   });
   const [showConsumerStory, setShowConsumerStory] = useState(false);
@@ -144,8 +145,19 @@ function App() {
 
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
-    // If running in Demo Mode, demo items are already initialized in local state
+    // If running in Demo Mode, ALWAYS strictly use seeded demo products and orders
     if (isDemoMode) {
+      setFruits(DEMO_PRODUCTS);
+      setCompletedOrders(getDemoOrders());
+      setCustomerCount(5);
+      setStoreName("Fresh Express Demo");
+      return;
+    }
+
+    // If visitor is not logged in and not store admin, DO NOT load production store
+    if (!user && !isStoreAdmin) {
+      setFruits([]);
+      setCompletedOrders([]);
       return;
     }
 
@@ -174,7 +186,10 @@ function App() {
 
     const unsubSettings = onSnapshot(doc(db, "app_settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
-        setCustomerCount(docSnap.data().customer_count);
+        setCustomerCount(docSnap.data().customer_count || 1);
+        if (docSnap.data().store_name) {
+          setStoreName(docSnap.data().store_name);
+        }
       }
     }, (error) => {
       console.error("Settings listener error:", error);
@@ -185,7 +200,8 @@ function App() {
       unsubOrders();
       unsubSettings();
     };
-  }, [isDemoMode]);
+  }, [isDemoMode, user, isStoreAdmin]);
+
 
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
@@ -505,11 +521,19 @@ function App() {
         }}
         onLaunchDemo={() => {
           enterDemoMode();
+          setFruits(DEMO_PRODUCTS);
+          setCompletedOrders(getDemoOrders());
+          setCustomerCount(5);
+          setStoreName("Fresh Express Demo");
           setScreen("app");
           window.location.hash = "#app";
         }}
         onStartConsumerStory={() => {
           enterDemoMode();
+          setFruits(DEMO_PRODUCTS);
+          setCompletedOrders(getDemoOrders());
+          setCustomerCount(5);
+          setStoreName("Fresh Express Demo");
           setScreen("app");
           window.location.hash = "#app";
           setShowConsumerStory(true);
@@ -526,6 +550,12 @@ function App() {
           window.location.hash = "#landing";
         }}
         onSuccessLogin={() => {
+          if (localStorage.getItem("elypos_is_demo") === "true") {
+            setFruits(DEMO_PRODUCTS);
+            setCompletedOrders(getDemoOrders());
+            setCustomerCount(5);
+            setStoreName("Fresh Express Demo");
+          }
           setScreen("app");
           window.location.hash = "#app";
         }}
@@ -602,6 +632,9 @@ function App() {
             className="btn-signout"
             onClick={async () => {
               await logoutUser();
+              setFruits([]);
+              setCompletedOrders([]);
+              setStoreName("ElyPOS");
               setScreen("landing");
               window.location.hash = "#landing";
             }}
