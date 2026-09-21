@@ -18,15 +18,17 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
     loginWithEmail, 
     registerWithEmail, 
     loginWithGoogle, 
-    enterDemoMode 
+    enterDemoMode,
+    rememberedEmail
   } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(rememberedEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(!!rememberedEmail);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,10 +58,12 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
     setLoading(true);
     try {
       if (isSignUp) {
-        await registerWithEmail(email, password, displayName || "Store Owner");
+        const storeNameClean = displayName?.trim() || "My Store";
+        localStorage.setItem("elypos_store_name", storeNameClean);
+        await registerWithEmail(email, password, storeNameClean);
         setSuccessMsg("Account created successfully!");
       } else {
-        await loginWithEmail(email, password);
+        await loginWithEmail(email, password, rememberMe);
       }
       if (onSuccessLogin) onSuccessLogin();
     } catch (err) {
@@ -73,6 +77,8 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
         message = "Password is too weak. Must be at least 6 characters.";
       } else if (err.code === "auth/invalid-email") {
         message = "Please enter a valid email address.";
+      } else if (err.code === "auth/too-many-requests") {
+        message = "Too many failed attempts. Please wait a moment and try again.";
       }
       setError(message);
     } finally {
@@ -112,7 +118,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
 
         {/* Brand Header */}
         <div className="auth-header">
-          <div className="auth-logo-box">EP</div>
+          <img src="/ely-logo.png" alt="ELY" className="auth-logo-img" />
           <h2 className="auth-title">
             {isSignUp ? "Create Your Account" : "Welcome to ELY.pos"}
           </h2>
@@ -238,6 +244,21 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
+            </div>
+          )}
+
+          {/* Remember Me — only on Sign In */}
+          {!isSignUp && (
+            <div className="auth-remember-row">
+              <label className="auth-remember-label">
+                <input
+                  type="checkbox"
+                  className="auth-remember-checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <span>Remember me on this device</span>
+              </label>
             </div>
           )}
 

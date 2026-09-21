@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="elyCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#00A3E0"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00A3E0"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#00A3E0" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Dark Rounded Squircle Base -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
+
+  <!-- Logo Mark Group -->
+  <g filter="url(#glow)">
+    <!-- Top Leaf Crest -->
+    <path d="M236 172 C236 130, 276 96, 350 90 C354 135, 320 180, 260 188 Z" fill="url(#leafGrad)"/>
+    <path d="M260 188 C290 156, 325 125, 350 90" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Upper Arc of 'E' -->
+    <path d="M200 230 C200 160, 240 120, 310 120 C325 120, 340 125, 340 125 C310 145, 270 160, 240 190 C220 210, 215 240, 215 260" 
+          fill="none" stroke="url(#elyCyan)" stroke-width="26" stroke-linecap="round"/>
+
+    <!-- Middle Bar of 'E' -->
+    <path d="M200 250 L310 250 C322 250, 328 258, 320 268 L305 285 L200 285" 
+          fill="url(#elyCyan)"/>
+
+    <!-- Lower Loop of 'E' -->
+    <path d="M200 250 C185 300, 190 360, 240 395 C280 420, 335 395, 345 350" 
+          fill="none" stroke="url(#elyCyan)" stroke-width="26" stroke-linecap="round"/>
+
+    <!-- Digital Counter / Scale / Analytics Accent Bars -->
+    <rect x="255" y="315" width="12" height="35" rx="6" fill="url(#leafGrad)"/>
+    <rect x="278" y="300" width="12" height="50" rx="6" fill="url(#leafGrad)"/>
+    <rect x="301" y="310" width="12" height="40" rx="6" fill="url(#leafGrad)"/>
+    
+    <!-- Base Tray Line -->
+    <path d="M235 365 L325 365" stroke="url(#elyCyan)" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>

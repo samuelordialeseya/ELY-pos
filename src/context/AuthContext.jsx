@@ -2,8 +2,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { 
   auth, 
-  googleProvider 
+  db,
+  googleProvider,
+  OWNER_EMAIL
 } from "../firebaseClient";
+import { doc, setDoc } from "firebase/firestore";
 
 import { 
   signInWithEmailAndPassword, 
@@ -25,16 +28,15 @@ export function AuthProvider({ children }) {
     return localStorage.getItem("elypos_is_demo") === "true";
   });
 
-  // Track if running in designated Store Admin mode (Dad's store)
-  const [isStoreAdmin, setIsStoreAdmin] = useState(() => {
-    // If previously saved as store admin or if remembered
-    return localStorage.getItem("elypos_store_admin") === "true";
-  });
+  // Derived: is the currently signed-in user Dad's store owner?
+  // Hard-coded to samuelordialesyt@gmail.com — always connects to root Firestore collections.
+  const isOwnerAccount = !!(user && user.email === OWNER_EMAIL);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        // Real user signed in — clear any lingering demo flag
         setIsDemoMode(false);
         localStorage.removeItem("elypos_is_demo");
       }
@@ -44,17 +46,36 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const loginWithEmail = async (email, password) => {
+  const loginWithEmail = async (email, password, rememberMe = false) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     setIsDemoMode(false);
     localStorage.removeItem("elypos_is_demo");
+    // Persist remembered email for quick access on the store iPad
+    if (rememberMe) {
+      localStorage.setItem("elypos_remembered_email", email);
+    } else {
+      localStorage.removeItem("elypos_remembered_email");
+    }
     return cred.user;
   };
 
   const registerWithEmail = async (email, password, displayName) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName && cred.user) {
-      await updateProfile(cred.user, { displayName });
+    const storeNameToUse = displayName?.trim() || "My Store";
+    if (cred.user) {
+      if (displayName) {
+        await updateProfile(cred.user, { displayName: storeNameToUse });
+      }
+      localStorage.setItem("elypos_store_name", storeNameToUse);
+      try {
+        await setDoc(doc(db, "users", cred.user.uid, "app_settings", "global"), {
+          store_name: storeNameToUse,
+          customer_count: 1,
+          created_at: new Date().toISOString()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Error setting initial store settings:", err);
+      }
     }
     setIsDemoMode(false);
     localStorage.removeItem("elypos_is_demo");
@@ -70,16 +91,7 @@ export function AuthProvider({ children }) {
 
   const enterDemoMode = () => {
     setIsDemoMode(true);
-    setIsStoreAdmin(false);
     localStorage.setItem("elypos_is_demo", "true");
-    localStorage.removeItem("elypos_store_admin");
-  };
-
-  const enterStoreAdmin = () => {
-    setIsStoreAdmin(true);
-    setIsDemoMode(false);
-    localStorage.setItem("elypos_store_admin", "true");
-    localStorage.removeItem("elypos_is_demo");
   };
 
   const logoutUser = async () => {
@@ -90,9 +102,9 @@ export function AuthProvider({ children }) {
     } finally {
       setUser(null);
       setIsDemoMode(false);
-      setIsStoreAdmin(false);
       localStorage.removeItem("elypos_is_demo");
-      localStorage.removeItem("elypos_store_admin");
+      // Note: We intentionally keep elypos_remembered_email across logouts
+      //       so the email is still pre-filled on the sign-in form next time.
     }
   };
 
@@ -100,13 +112,14 @@ export function AuthProvider({ children }) {
     user,
     loading,
     isDemoMode,
-    isStoreAdmin,
+    isOwnerAccount,
     loginWithEmail,
     registerWithEmail,
     loginWithGoogle,
     enterDemoMode,
-    enterStoreAdmin,
-    logoutUser
+    logoutUser,
+    // Convenience: pre-filled email for the auth form
+    rememberedEmail: localStorage.getItem("elypos_remembered_email") || ""
   };
 
   return (

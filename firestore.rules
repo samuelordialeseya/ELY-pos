@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isLegacyStoreUser() {
+      return isAuthenticated() && request.auth.token.email == 'samuelordialesyt@gmail.com';
+    }
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Root collections: Dad's live store (accessible by samuelordialesyt@gmail.com)
+    match /products/{document=**} {
+      allow read, write: if isLegacyStoreUser();
+    }
+    match /orders/{document=**} {
+      allow read, write: if isLegacyStoreUser();
+    }
+    match /app_settings/{document=**} {
+      allow read, write: if isLegacyStoreUser();
+    }
+
+    // Per-user subcollections: Isolated store data for any registered platform user
+    match /users/{userId}/{document=**} {
+      allow read, write: if isUser(userId);
+    }
+  }
+}

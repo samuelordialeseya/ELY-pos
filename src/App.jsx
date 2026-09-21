@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
 import { db } from './firebaseClient';
 import { 
@@ -7,6 +7,8 @@ import {
   addDoc, 
   deleteDoc, 
   updateDoc, 
+  setDoc,
+  increment,
   onSnapshot, 
   query, 
   orderBy
@@ -36,7 +38,11 @@ import {
   Info,
   LogOut,
   Store,
-  User as UserIcon
+  User as UserIcon,
+  Settings,
+  ChevronUp,
+  ChevronDown,
+  Compass
 } from "lucide-react";
 
 import { useAuth } from "./context/AuthContext";
@@ -44,6 +50,7 @@ import LandingPage from "./components/LandingPage";
 import AuthPage from "./components/AuthPage";
 import OnboardingModal from "./components/OnboardingModal";
 import ConsumerStoryModal from "./components/ConsumerStoryModal";
+import StoreSetupLaunchpad from "./components/StoreSetupLaunchpad";
 import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders } from "./data/demoSeed";
 
 const generateId = () => {
@@ -56,18 +63,19 @@ function App() {
   const { 
     user, 
     isDemoMode, 
-    isStoreAdmin, 
+    isOwnerAccount,
+    loading: authLoading,
     enterDemoMode, 
     logoutUser 
   } = useAuth();
 
   // Screen routing state: 'landing' | 'auth' | 'app'
   const [screen, setScreen] = useState(() => {
-    if (window.location.hash === "#app") return "app";
-    if (window.location.hash === "#auth" || window.location.hash === "#login") return "auth";
-    if (localStorage.getItem("elypos_is_demo") === "true" || localStorage.getItem("elypos_store_admin") === "true") {
-      return "app";
+    if (window.location.hash === "#app") {
+      if (localStorage.getItem("elypos_is_demo") === "true") return "app";
+      return "landing";
     }
+    if (window.location.hash === "#auth" || window.location.hash === "#login") return "auth";
     return "landing";
   });
 
@@ -83,20 +91,61 @@ function App() {
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash === "#app") {
-        setScreen("app");
+        if (user || isDemoMode) {
+          setScreen("app");
+        } else {
+          setScreen("landing");
+          window.location.hash = "#landing";
+        }
       } else if (hash === "#auth" || hash === "#login") {
         setScreen("auth");
       } else if (hash === "#landing" || hash === "") {
-        if (!user && !isDemoMode && !isStoreAdmin) {
-          setScreen("landing");
-        }
+        setScreen("landing");
       }
     };
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
-  }, [user, isDemoMode, isStoreAdmin]);
+  }, [user, isDemoMode]);
+
+  // Auth route guard: protect #app from unauthenticated visits
+  useEffect(() => {
+    if (!authLoading && screen === "app" && !user && !isDemoMode) {
+      setScreen("landing");
+      window.location.hash = "#landing";
+    }
+  }, [authLoading, screen, user, isDemoMode]);
+
+  // Auto-forward authenticated users to #app unless they explicitly opened #landing
+  useEffect(() => {
+    if (!authLoading && user && screen === "landing" && window.location.hash !== "#landing") {
+      setScreen("app");
+      window.location.hash = "#app";
+    }
+  }, [authLoading, user, screen]);
 
   const [view, setView] = useState("dashboard"); 
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLaunchpad, setShowLaunchpad] = useState(() => {
+    return localStorage.getItem("elypos_show_launchpad") === "true";
+  });
+  const settingsRef = useRef(null);
+
+  // Close settings popup when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+        setShowSettings(false);
+      }
+    };
+    if (showSettings) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      document.addEventListener("touchstart", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [showSettings]);
   
   // --- CLOUD DATA STATES (pre-seeded with demo data if in demo mode) ---
   const [fruits, setFruits] = useState(() => isDemoMode ? DEMO_PRODUCTS : []);
@@ -130,10 +179,27 @@ function App() {
   // --- STORE BRANDING & STORY STATES ---
   const [storeName, setStoreName] = useState(() => {
     if (isDemoMode) return "Fresh Express Demo";
-    return localStorage.getItem("elypos_store_name") || "ElyPOS";
+    const saved = localStorage.getItem("elypos_store_name");
+    if (saved && saved !== "ElyPOS") return saved;
+    if (user?.displayName) return user.displayName;
+    return isOwnerAccount ? "Ely's Store" : "My Store";
   });
   const [showConsumerStory, setShowConsumerStory] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [completedReceiptModal, setCompletedReceiptModal] = useState(null);
+
+  // Sync store name with active user profile if available
+  useEffect(() => {
+    if (user && !isDemoMode) {
+      const saved = localStorage.getItem("elypos_store_name");
+      if (saved && saved !== "ElyPOS") {
+        setStoreName(saved);
+      } else if (user.displayName) {
+        setStoreName(user.displayName);
+        localStorage.setItem("elypos_store_name", user.displayName);
+      }
+    }
+  }, [user, isDemoMode]);
 
   const viewInfo = {
     dashboard: { title: "Dashboard Overview", text: "View your daily, weekly, or monthly store revenue and performance metrics. Use the date filters to see top-selling items and overall sales trends." },
@@ -145,7 +211,7 @@ function App() {
 
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
-    // If running in Demo Mode, ALWAYS strictly use seeded demo products and orders
+    // Demo Mode: use isolated seeded data only
     if (isDemoMode) {
       setFruits(DEMO_PRODUCTS);
       setCompletedOrders(getDemoOrders());
@@ -154,42 +220,53 @@ function App() {
       return;
     }
 
-    // If visitor is not logged in and not store admin, DO NOT load production store
-    if (!user && !isStoreAdmin) {
+    // Not logged in: show nothing
+    if (!user) {
       setFruits([]);
       setCompletedOrders([]);
       return;
     }
 
-    // Production Mode (Dad's store / store admin / authenticated account): Real Firestore listeners
-    const qProducts = query(collection(db, "products"), orderBy("name"));
+    // Owner account (samuelordialesyt@gmail.com) → root Firestore collections (Dad's live store)
+    // Any other authenticated user → their own scoped sub-collections
+    const productsPath = isOwnerAccount ? "products" : `users/${user.uid}/products`;
+    const ordersPath   = isOwnerAccount ? "orders"   : `users/${user.uid}/orders`;
+    const settingsRef  = isOwnerAccount
+      ? doc(db, "app_settings", "global")
+      : doc(db, "users", user.uid, "app_settings", "global");
+
+    const qProducts = query(collection(db, productsPath), orderBy("name"));
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
       const prodList = [];
-      snapshot.forEach((doc) => {
-        prodList.push({ id: doc.id, ...doc.data() });
+      snapshot.forEach((d) => {
+        prodList.push({ id: d.id, ...d.data() });
       });
       setFruits(prodList);
     }, (error) => {
       console.error("Products listener error:", error);
     });
 
-    const qOrders = query(collection(db, "orders"), orderBy("created_at", "desc"));
+    const qOrders = query(collection(db, ordersPath), orderBy("created_at", "desc"));
     const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       const orderList = [];
-      snapshot.forEach((doc) => {
-        orderList.push({ id: doc.id, ...doc.data() });
+      snapshot.forEach((d) => {
+        orderList.push({ id: d.id, ...d.data() });
       });
       setCompletedOrders(orderList);
     }, (error) => {
       console.error("Orders listener error:", error);
     });
 
-    const unsubSettings = onSnapshot(doc(db, "app_settings", "global"), (docSnap) => {
+    const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
         setCustomerCount(docSnap.data().customer_count || 1);
         if (docSnap.data().store_name) {
           setStoreName(docSnap.data().store_name);
+          localStorage.setItem("elypos_store_name", docSnap.data().store_name);
         }
+      } else if (user?.displayName) {
+        setStoreName(user.displayName);
+        localStorage.setItem("elypos_store_name", user.displayName);
       }
     }, (error) => {
       console.error("Settings listener error:", error);
@@ -200,11 +277,18 @@ function App() {
       unsubOrders();
       unsubSettings();
     };
-  }, [isDemoMode, user, isStoreAdmin]);
+  }, [isDemoMode, user, isOwnerAccount]);
 
 
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
+
+  // Helper: return the correct Firestore collection path for the active user
+  const prodCol  = () => isOwnerAccount ? "products" : `users/${user?.uid}/products`;
+  const ordCol   = () => isOwnerAccount ? "orders"   : `users/${user?.uid}/orders`;
+  const settDoc  = () => isOwnerAccount
+    ? doc(db, "app_settings", "global")
+    : doc(db, "users", user?.uid, "app_settings", "global");
 
   // --- INVENTORY ACTIONS ---
   const addFruit = async (e) => {
@@ -225,7 +309,7 @@ function App() {
         return;
       }
       try {
-        await addDoc(collection(db, 'products'), newFruit);
+        await addDoc(collection(db, prodCol()), newFruit);
         setName(""); setPrice(""); setUnit(""); setCategory("");
         showToast("Added to Inventory");
       } catch (error) {
@@ -241,7 +325,7 @@ function App() {
       return;
     }
     try {
-      await deleteDoc(doc(db, 'products', id));
+      await deleteDoc(doc(db, prodCol(), id));
       showToast("Removed from Cloud");
     } catch (error) {
       showToast("Error: " + error.message);
@@ -262,11 +346,10 @@ function App() {
       return;
     }
     try {
-      await updateDoc(doc(db, 'products', id), updates);
+      await updateDoc(doc(db, prodCol(), id), updates);
       setEditingId(null); 
       showToast("Updated!");
     } catch (error) {
-
       showToast("Error: " + error.message);
     }
   };
@@ -308,17 +391,20 @@ function App() {
     };
 
     if (isDemoMode) {
-      setCompletedOrders(prev => [{ id: `demo-order-${Date.now()}`, ...newOrder }, ...prev]);
+      const demoOrd = { id: `demo-order-${Date.now()}`, ...newOrder };
+      setCompletedOrders(prev => [demoOrd, ...prev]);
       setCustomerCount(prev => prev + 1);
       setCart([]); setCustomer(""); setAddress("");
+      setCompletedReceiptModal(demoOrd);
       showToast("Demo Transaction Saved!");
       return;
     }
 
     try {
-      await addDoc(collection(db, 'orders'), newOrder);
-      await updateDoc(doc(db, 'app_settings', 'global'), { customer_count: customerCount + 1 });
+      const docRef = await addDoc(collection(db, ordCol()), newOrder);
+      await setDoc(settDoc(), { customer_count: increment(1) }, { merge: true });
       setCart([]); setCustomer(""); setAddress("");
+      setCompletedReceiptModal({ id: docRef.id, ...newOrder });
       showToast("Transaction Saved!");
     } catch (orderError) {
       showToast("Error: " + orderError.message);
@@ -333,7 +419,7 @@ function App() {
       return;
     }
     try {
-      await deleteDoc(doc(db, 'orders', id));
+      await deleteDoc(doc(db, ordCol(), id));
       showToast("Order Deleted");
     } catch (error) {
       showToast("Error: " + error.message);
@@ -348,10 +434,9 @@ function App() {
       return;
     }
     try {
-      await updateDoc(doc(db, 'orders', id), { status: newStatus });
+      await updateDoc(doc(db, ordCol(), id), { status: newStatus });
       showToast("Status Updated");
     } catch (error) {
-
       showToast("Error: " + error.message);
     }
   };
@@ -448,73 +533,129 @@ function App() {
   });
   const historyFilteredRevenue = historyFilteredOrders.reduce((a, b) => a + (b.total || 0), 0);
 
-  // --- GUIDED TOUR ---
-  const startTour = () => {
-    let steps = [];
-    if (view === "dashboard") {
-      steps = [
-        { element: '.nav-links', popover: { title: 'Navigation', description: 'Switch between Dashboard, POS, Inventory, History, and Delivery here.', side: "right", align: 'start' } },
-        { element: '.dash-range-btns', popover: { title: 'Date Filter', description: 'Select the time period you want to analyze.', side: "bottom", align: 'start' } },
-        { element: '.dash-metric-grid', popover: { title: 'Key Metrics', description: 'Get a quick overview of your total revenue, transaction counts, and average order values.', side: "bottom", align: 'start' } },
-        { element: '.dash-panels', popover: { title: 'Deep Insights', description: 'See your top selling products and a list of the most recent transactions.', side: "top", align: 'start' } },
-      ];
-    } else if (view === "pos") {
-      steps = [
-        { element: '.top-search', popover: { title: 'Search Items', description: 'Type to quickly find a specific product by its name.', side: "bottom", align: 'start' } },
-        { element: '.category-filter-bar', popover: { title: 'Filter by Category', description: 'Tap a category to narrow down the list of products.', side: "bottom", align: 'start' } },
-        { element: '.product-grid', popover: { title: 'Product Catalog', description: 'Tap a product to add it to the cart. For items sold by weight, adjust the quantity first.', side: "right", align: 'start' } },
-        { element: '.bill-sidebar', popover: { title: 'Current Cart', description: 'Review the items in the cart, add customer details, and hit Checkout to complete the order.', side: "left", align: 'start' } },
-      ];
-    } else if (view === "inventory") {
-      steps = [
-        { element: '.top-search', popover: { title: 'Search Inventory', description: 'Quickly find an item to edit or delete.', side: "bottom", align: 'start' } },
-        { element: '.inv-form-card', popover: { title: 'Add New Item', description: 'Fill in the details to add a completely new product to your catalog.', side: "bottom", align: 'start' } },
-        { element: '.inv-table', popover: { title: 'Product List', description: 'View, edit, or delete existing products. Changes here will reflect immediately on the POS.', side: "top", align: 'start' } },
-      ];
-    } else if (view === "orders") {
-      steps = [
-        { element: '.orders-controls', popover: { title: 'History Filters', description: 'Search for specific customers or select a date to review past orders.', side: "bottom", align: 'start' } },
-        { element: '.history-card', popover: { title: 'Digital Receipts', description: 'View detailed receipts for each order. You can download them or delete records if a mistake was made.', side: "top", align: 'start' } },
-      ];
-    } else if (view === "delivery") {
-      steps = [
-        { element: '.delivery-step-select', popover: { title: 'Pending Orders', description: 'Select the orders you want to include in today\'s delivery manifest.', side: "right", align: 'start' } },
-        { element: '.manifest-sheet', popover: { title: 'Rider Manifest', description: 'A beautifully formatted, print-ready manifest will be generated here based on your selection.', side: "left", align: 'start' } },
-      ];
-    }
+  // --- STARTER PRODUCE LOADER FOR NEW STORES ---
+  const handleAddStarterProducts = async () => {
+    const starters = [
+      { name: "Avocado Davao", price: 150, unit: "kg", category: "Fruits", created_at: new Date().toISOString() },
+      { name: "Sweet Mango (Carabao)", price: 160, unit: "kg", category: "Fruits", created_at: new Date().toISOString() },
+      { name: "Red Onion (Baguio)", price: 140, unit: "kg", category: "Vegetables", created_at: new Date().toISOString() }
+    ];
 
-    // Dynamic filtering to prevent driver.js from crashing on missing elements
-    const activeSteps = steps.filter(step => {
-      if (typeof step.element === 'string') {
-        const el = document.querySelector(step.element);
-        return el !== null && el.getBoundingClientRect().width > 0;
-      }
-      return true;
-    });
-
-    if (activeSteps.length === 0) {
-      showToast("No active tour elements found on this view!");
+    if (isDemoMode) {
+      setFruits(prev => [
+        ...starters.map((s, idx) => ({ id: `starter-${Date.now()}-${idx}`, ...s })),
+        ...prev
+      ]);
+      showToast("3 starter produce items loaded!");
       return;
     }
 
-    const tour = driver({
-      showProgress: true,
-      animate: true,
-      steps: activeSteps,
-      popoverClass: 'driverjs-theme'
-    });
-    
-    tour.drive();
+    if (!user) return;
+    try {
+      for (const item of starters) {
+        await addDoc(collection(db, prodCol()), item);
+      }
+      showToast("3 starter produce items added to catalog!");
+    } catch (err) {
+      console.error("Error adding starter items:", err);
+      showToast("Error adding starter items: " + err.message);
+    }
+  };
+
+  // --- GUIDED TOUR (driver.js spotlight highlighting) ---
+  const startTour = (targetView = null) => {
+    const runDriver = (activeView) => {
+      let steps = [];
+      if (activeView === "pos") {
+        steps = [
+          { element: '.product-grid', popover: { title: '1. Product Catalog', description: 'Tap produce items to select them. Items support both per-kg weight scale pricing and per-piece counts.', side: "right", align: 'start' } },
+          { element: '.weight-selector', popover: { title: '2. Scale Weight Input', description: 'Enter the weight from your digital scale (e.g., 0.85 kg or 2 pcs) and tap Add.', side: "bottom", align: 'start' } },
+          { element: '.bill-sidebar', popover: { title: '3. Cart & Customer Info', description: 'Current order items calculate live. Type customer name or delivery address here.', side: "left", align: 'start' } },
+          { element: '.btn-checkout', popover: { title: '4. Complete Transaction', description: 'Click to record the sale, increment customer count, and generate a printable digital receipt.', side: "top", align: 'center' } },
+          { element: '.nav-links', popover: { title: '5. POS Navigation', description: 'Quickly switch between Register, Analytics Dashboard, Inventory Catalog, Receipts History, and Delivery Sheets.', side: "right", align: 'start' } },
+          { element: '.settings-tab-trigger', popover: { title: '6. Settings & Launchpad', description: 'Access store settings, onboarding launchpad, reload terminal, and account actions here.', side: "top", align: 'start' } }
+        ];
+      } else if (activeView === "dashboard") {
+        steps = [
+          { element: '.nav-links', popover: { title: 'Navigation', description: 'Switch between Dashboard, POS, Inventory, History, and Delivery here.', side: "right", align: 'start' } },
+          { element: '.dash-range-btns', popover: { title: 'Date Filter', description: 'Select the time period you want to analyze.', side: "bottom", align: 'start' } },
+          { element: '.dash-metric-grid', popover: { title: 'Key Metrics', description: 'Get a quick overview of your total revenue, transaction counts, and average order values.', side: "bottom", align: 'start' } },
+          { element: '.dash-panels', popover: { title: 'Deep Insights', description: 'See your top selling products and a list of the most recent transactions.', side: "top", align: 'start' } },
+        ];
+      } else if (activeView === "inventory") {
+        steps = [
+          { element: '.top-search', popover: { title: 'Search Inventory', description: 'Quickly find an item to edit or delete.', side: "bottom", align: 'start' } },
+          { element: '.inv-form-card', popover: { title: 'Add New Item', description: 'Fill in the details to add a completely new product to your catalog.', side: "bottom", align: 'start' } },
+          { element: '.inv-table', popover: { title: 'Product List', description: 'View, edit, or delete existing products. Changes here will reflect immediately on the POS.', side: "top", align: 'start' } },
+        ];
+      } else if (activeView === "orders") {
+        steps = [
+          { element: '.orders-controls', popover: { title: 'History Filters', description: 'Search for specific customers or select a date to review past orders.', side: "bottom", align: 'start' } },
+          { element: '.history-card', popover: { title: 'Digital Receipts', description: 'View detailed receipts for each order. You can download them or delete records if a mistake was made.', side: "top", align: 'start' } },
+        ];
+      } else if (activeView === "delivery") {
+        steps = [
+          { element: '.delivery-step-select', popover: { title: 'Pending Orders', description: 'Select the orders you want to include in today\'s delivery manifest.', side: "right", align: 'start' } },
+          { element: '.manifest-sheet', popover: { title: 'Rider Manifest', description: 'A beautifully formatted, print-ready manifest will be generated here based on your selection.', side: "left", align: 'start' } },
+        ];
+      }
+
+      const activeSteps = steps.filter(step => {
+        if (typeof step.element === 'string') {
+          const el = document.querySelector(step.element);
+          return el !== null && el.getBoundingClientRect().width > 0;
+        }
+        return true;
+      });
+
+      if (activeSteps.length === 0) {
+        showToast("Spotlight tour ready on POS screen!");
+        return;
+      }
+
+      const tour = driver({
+        showProgress: true,
+        animate: true,
+        steps: activeSteps,
+        popoverClass: 'driverjs-theme'
+      });
+      
+      tour.drive();
+    };
+
+    if (targetView && targetView !== view) {
+      setView(targetView);
+      setTimeout(() => runDriver(targetView), 250);
+    } else {
+      runDriver(view);
+    }
   };
 
   // --- RENDER SCREEN DISPATCH ---
+  // Show a loading screen while Firebase Auth resolves the session (prevents flash on iPad reload)
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', background: 'var(--bg, #0f172a)', flexDirection: 'column', gap: '16px'
+      }}>
+        <div style={{
+          width: 48, height: 48, border: '4px solid rgba(255,255,255,0.1)',
+          borderTop: '4px solid #6366f1', borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'inherit', fontSize: '14px', margin: 0 }}>
+          Loading ELY.pos…
+        </p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+
   if (screen === "landing") {
     return (
       <LandingPage 
-        onLaunchApp={() => {
-          setScreen("app");
-          window.location.hash = "#app";
-        }}
         onOpenAuth={() => {
           setScreen("auth");
           window.location.hash = "#auth";
@@ -525,18 +666,12 @@ function App() {
           setCompletedOrders(getDemoOrders());
           setCustomerCount(5);
           setStoreName("Fresh Express Demo");
+          setView("pos");
           setScreen("app");
           window.location.hash = "#app";
-        }}
-        onStartConsumerStory={() => {
-          enterDemoMode();
-          setFruits(DEMO_PRODUCTS);
-          setCompletedOrders(getDemoOrders());
-          setCustomerCount(5);
-          setStoreName("Fresh Express Demo");
-          setScreen("app");
-          window.location.hash = "#app";
-          setShowConsumerStory(true);
+          setTimeout(() => {
+            startTour("pos");
+          }, 350);
         }}
       />
     );
@@ -550,11 +685,8 @@ function App() {
           window.location.hash = "#landing";
         }}
         onSuccessLogin={() => {
-          if (localStorage.getItem("elypos_is_demo") === "true") {
-            setFruits(DEMO_PRODUCTS);
-            setCompletedOrders(getDemoOrders());
-            setCustomerCount(5);
-            setStoreName("Fresh Express Demo");
+          if (localStorage.getItem("elypos_show_launchpad") === "true") {
+            setShowLaunchpad(true);
           }
           setScreen("app");
           window.location.hash = "#app";
@@ -568,81 +700,153 @@ function App() {
     <div className="pos-layout">
       <aside className="sidebar">
         <div className="brand" title="Active Store">
-          <div className="logo-box">
-            {storeName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "EP"}
-          </div>
+          <img src="/ely-logo.png" alt="ELY" className="brand-logo-img" />
           <h2 className="brand-text">{storeName}</h2>
         </div>
         <nav className="nav-links">
-          <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>
+          <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => { setView('dashboard'); setShowSettings(false); }}>
             <span className="nav-icon nav-icon-dashboard"><LayoutDashboard size={18} /></span>
             <span className="nav-text">Dashboard</span>
           </div>
-          <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => setView('pos')}>
+          <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => { setView('pos'); setShowSettings(false); }}>
             <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} /></span>
             <span className="nav-text">POS</span>
           </div>
-          <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>
+          <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => { setView('inventory'); setShowSettings(false); }}>
             <span className="nav-icon nav-icon-inventory"><Package size={18} /></span>
             <span className="nav-text">Inventory</span>
           </div>
-          <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => setView('orders')}>
+          <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => { setView('orders'); setShowSettings(false); }}>
             <span className="nav-icon nav-icon-orders"><ClipboardList size={18} /></span>
             <span className="nav-text">History</span>
           </div>
-          <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => setView('delivery')}>
+          <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => { setView('delivery'); setShowSettings(false); }}>
             <span className="nav-icon nav-icon-delivery"><Truck size={18} /></span>
             <span className="nav-text">Delivery</span>
           </div>
         </nav>
-        <div className="sidebar-footer">
-          {isDemoMode && (
-            <div className="sidebar-mode-pill demo">
-              <Sparkles size={13} />
-              <span>Demo Sandbox</span>
-            </div>
-          )}
-          {isStoreAdmin && (
-            <div className="sidebar-mode-pill admin">
-              <Store size={13} />
-              <span>Ely's Store Admin</span>
-            </div>
-          )}
-          {user && !isStoreAdmin && !isDemoMode && (
-            <div className="sidebar-mode-pill user">
-              <UserIcon size={13} />
-              <span>{user.displayName || user.email}</span>
+
+        <div className="sidebar-footer" ref={settingsRef}>
+          {/* Collapsible Settings Popover */}
+          {showSettings && (
+            <div className="settings-popup">
+              <div className="settings-popup-header">
+                <div className="settings-user-row">
+                  <div className="settings-user-avatar">
+                    {isDemoMode ? <Sparkles size={16} /> : <UserIcon size={16} />}
+                  </div>
+                  <div className="settings-user-meta">
+                    <span className="settings-user-name">
+                      {isDemoMode ? "Demo Mode" : (user?.displayName || user?.email?.split('@')[0] || "Store User")}
+                    </span>
+                    <span className="settings-user-email">
+                      {isDemoMode ? "Guest Sandbox" : user?.email}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="settings-store-section">
+                <label className="settings-field-label">Store Name</label>
+                <div className="settings-input-group">
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={storeName}
+                    placeholder="Enter store name..."
+                    onChange={e => setStoreName(e.target.value)}
+                    onBlur={async () => {
+                      const trimmed = storeName.trim() || "My Store";
+                      setStoreName(trimmed);
+                      localStorage.setItem("elypos_store_name", trimmed);
+                      if (!isDemoMode && user) {
+                        try {
+                          await setDoc(settDoc(), { store_name: trimmed }, { merge: true });
+                          showToast("Store name updated");
+                        } catch (err) {
+                          console.error("Store name update error:", err);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="settings-divider" />
+
+              <div className="settings-actions-group">
+                <button
+                  className="settings-action-btn"
+                  onClick={() => {
+                    setShowSettings(false);
+                    setShowLaunchpad(true);
+                  }}
+                  title="Store Setup Launchpad"
+                >
+                  <span className="settings-action-icon"><Compass size={15} /></span>
+                  <span>Store Setup Launchpad</span>
+                </button>
+
+                <button
+                  className="settings-action-btn"
+                  onClick={() => {
+                    setShowSettings(false);
+                    startTour("pos");
+                  }}
+                  title="Interactive Spotlight Tour"
+                >
+                  <span className="settings-action-icon"><Sparkles size={15} /></span>
+                  <span>Interactive Tour (Driver.js)</span>
+                </button>
+
+                <button
+                  className="settings-action-btn"
+                  onClick={() => {
+                    if (window.confirm("Reload the POS? Unsaved checkout items will be cleared.")) {
+                      window.location.reload();
+                    }
+                  }}
+                  title="Reload App"
+                >
+                  <span className="settings-action-icon"><RotateCw size={15} /></span>
+                  <span>Reload Terminal</span>
+                </button>
+
+                <button
+                  className="settings-action-btn settings-action-signout"
+                  onClick={async () => {
+                    setShowSettings(false);
+                    await logoutUser();
+                    setFruits([]);
+                    setCompletedOrders([]);
+                    setStoreName("My Store");
+                    localStorage.removeItem("elypos_store_name");
+                    setScreen("landing");
+                    window.location.hash = "#landing";
+                  }}
+                  title="Sign Out"
+                >
+                  <span className="settings-action-icon"><LogOut size={15} /></span>
+                  <span>{isDemoMode ? "Exit Demo" : "Sign Out"}</span>
+                </button>
+              </div>
             </div>
           )}
 
-          <button 
-            onClick={() => {
-              if (window.confirm("Are you sure you want to reload the app? Any unsaved items in your checkout cart will be completely lost.")) {
-                window.location.reload();
-              }
-            }} 
-            className="btn-reload" 
-            title="Reload App"
+          {/* Bottom Left Settings Tab Trigger */}
+          <div
+            className={`nav-item settings-tab-trigger ${showSettings ? 'active' : ''}`}
+            onClick={() => setShowSettings(prev => !prev)}
+            title="Settings & Account"
           >
-            <span className="reload-icon nav-icon-reload"><RotateCw size={15} /></span>
-            <span className="reload-text">Reload App</span>
-          </button>
-
-          <button 
-            className="btn-signout"
-            onClick={async () => {
-              await logoutUser();
-              setFruits([]);
-              setCompletedOrders([]);
-              setStoreName("ElyPOS");
-              setScreen("landing");
-              window.location.hash = "#landing";
-            }}
-            title="Exit Session"
-          >
-            <LogOut size={14} />
-            <span>{isDemoMode ? "Exit Demo" : isStoreAdmin ? "Switch Store" : "Sign Out"}</span>
-          </button>
+            <div className="settings-trigger-left">
+              <span className="nav-icon nav-icon-settings"><Settings size={18} /></span>
+              <span className="nav-text">Settings</span>
+            </div>
+            <span className="settings-trigger-chevron">
+              {showSettings ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
+            </span>
+          </div>
         </div>
       </aside>
 
@@ -661,7 +865,28 @@ function App() {
                 <h3 className="section-title">{view.toUpperCase()}</h3>
               )}
             </div>
-            <div className="header-right-info" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div className="header-right-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {isDemoMode && (
+                <div className="demo-indicator-pill">
+                  <Sparkles size={13} className="demo-pill-sparkle" />
+                  <span>Demo Sandbox</span>
+                  <button
+                    className="btn-exit-demo-pill"
+                    onClick={async () => {
+                      await logoutUser();
+                      setFruits([]);
+                      setCompletedOrders([]);
+                      setStoreName("My Store");
+                      localStorage.removeItem("elypos_store_name");
+                      setScreen("landing");
+                      window.location.hash = "#landing";
+                    }}
+                    title="Exit Demo to Landing Page"
+                  >
+                    Exit Demo
+                  </button>
+                </div>
+              )}
               <button className="btn-help-icon" onClick={() => setShowOnboarding(true)} title="Setup Guide & Tour">
                 ?
               </button>
@@ -683,18 +908,29 @@ function App() {
 
         {(view === 'pos' || view === 'preorder') && (
           <div className="product-grid">
-            {fruits.filter(f => (selectedCategory === "All" || f.category === selectedCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase())).map(f => (
-              <div key={f.id} className="food-card">
-                <div className="card-cat">{f.category}</div>
-                <div className="food-img-circle"></div>
-                <h4>{f.name}</h4>
-                <p className="food-price">₱{f.price.toFixed(2)} / {f.unit}</p>
-                <div className="weight-selector">
-                  <input type="number" step="any" placeholder={f.unit} value={weights[f.id] || ""} onChange={e => setWeights({...weights, [f.id]: e.target.value})} />
-                  <button className="add-btn" onClick={() => addToCart(f)}>Add</button>
-                </div>
+            {fruits.length === 0 ? (
+              <div className="empty-catalog-state">
+                <Package size={44} className="empty-catalog-icon" />
+                <h3>Your Product Catalog is Empty</h3>
+                <p>No products added yet. Visit Inventory to add your first item and start ringing up sales.</p>
+                <button className="btn-empty-add" onClick={() => setView('inventory')}>
+                  Go to Inventory
+                </button>
               </div>
-            ))}
+            ) : (
+              fruits.filter(f => (selectedCategory === "All" || f.category === selectedCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase())).map(f => (
+                <div key={f.id} className="food-card">
+                  <div className="card-cat">{f.category}</div>
+                  <div className="food-img-circle"></div>
+                  <h4>{f.name}</h4>
+                  <p className="food-price">₱{f.price.toFixed(2)} / {f.unit}</p>
+                  <div className="weight-selector">
+                    <input type="number" step="any" placeholder={f.unit} value={weights[f.id] || ""} onChange={e => setWeights({...weights, [f.id]: e.target.value})} />
+                    <button className="add-btn" onClick={() => addToCart(f)}>Add</button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -831,6 +1067,13 @@ function App() {
             <table className="inv-table">
               <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Unit</th><th>Actions</th></tr></thead>
               <tbody>
+                {fruits.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '35px 20px', color: 'var(--text-muted)' }}>
+                      No products in your catalog yet. Fill out the form above to add your first product.
+                    </td>
+                  </tr>
+                )}
                 {fruits
                   .filter(f => (selectedCategory === "All" || f.category === selectedCategory))
                   .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -997,6 +1240,76 @@ function App() {
     <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
   </div>
 </aside>
+      {completedReceiptModal && (
+        <div className="parser-modal-overlay" onClick={() => setCompletedReceiptModal(null)}>
+          <div className="parser-modal-content receipt-popup-modal" onClick={e => e.stopPropagation()}>
+            <div className="receipt-popup-header">
+              <div className="receipt-popup-badge">
+                <CheckCircle2 size={18} color="#10b981" />
+                <span>Transaction Complete</span>
+              </div>
+              <button className="receipt-popup-close" onClick={() => setCompletedReceiptModal(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div id={`instant-receipt-${completedReceiptModal.id}`} className="instant-receipt-paper">
+              <div className="receipt-brand-header">
+                <h3>{storeName.toUpperCase()}</h3>
+                <p>Official Sales Receipt</p>
+                <div className="receipt-meta-line">
+                  <span>{completedReceiptModal.display_date} · {completedReceiptModal.time}</span>
+                  <span>{completedReceiptModal.customer_name}</span>
+                </div>
+              </div>
+              <div className="receipt-divider"></div>
+              <div className="receipt-popup-items">
+                {completedReceiptModal.items.map(item => (
+                  <div key={item.cartId} className="receipt-popup-row">
+                    <div>
+                      <strong>{item.name}</strong>
+                      <span className="receipt-popup-sub">{item.quantity} {item.unit} × ₱{item.price.toFixed(2)}</span>
+                    </div>
+                    <span className="receipt-popup-item-price">₱{item.subtotal.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="receipt-divider"></div>
+              <div className="receipt-popup-total">
+                <span>TOTAL PAID</span>
+                <span className="receipt-popup-total-value">₱{completedReceiptModal.total.toFixed(2)}</span>
+              </div>
+              <div className="receipt-popup-footer">
+                <p>Thank you for shopping at {storeName}!</p>
+              </div>
+            </div>
+
+            <div className="receipt-popup-actions">
+              <button 
+                className="btn-download-instant-receipt"
+                onClick={() => {
+                  const element = document.getElementById(`instant-receipt-${completedReceiptModal.id}`);
+                  if (!element) return;
+                  html2canvas(element, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+                    const link = document.createElement("a");
+                    link.download = `Receipt_${completedReceiptModal.customer_name.replace(/\s+/g, '_')}_${Date.now()}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                    showToast("Receipt Downloaded!");
+                  });
+                }}
+              >
+                <Camera size={16} />
+                <span>Download Receipt PNG</span>
+              </button>
+              <button className="btn-new-sale" onClick={() => setCompletedReceiptModal(null)}>
+                New Sale
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showInfoModal && (
         <div className="parser-modal-overlay" onClick={() => setShowInfoModal(false)}>
           <div className="parser-modal-content info-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center', padding: '30px' }}>
@@ -1011,6 +1324,34 @@ function App() {
           </div>
         </div>
       )}
+
+      <StoreSetupLaunchpad
+        isOpen={showLaunchpad}
+        onClose={() => {
+          setShowLaunchpad(false);
+          localStorage.removeItem("elypos_show_launchpad");
+        }}
+        storeName={storeName}
+        onUpdateStoreName={async (newName) => {
+          setStoreName(newName);
+          localStorage.setItem("elypos_store_name", newName);
+          if (!isDemoMode && user) {
+            try {
+              await setDoc(settDoc(), { store_name: newName }, { merge: true });
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          showToast(`Store renamed to ${newName}!`);
+        }}
+        onAddStarterProducts={handleAddStarterProducts}
+        onStartTour={() => {
+          setShowLaunchpad(false);
+          localStorage.removeItem("elypos_show_launchpad");
+          startTour("pos");
+        }}
+        onNavigateView={(newView) => setView(newView)}
+      />
 
       <OnboardingModal 
         isOpen={showOnboarding} 

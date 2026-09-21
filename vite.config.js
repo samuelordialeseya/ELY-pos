@@ -7,12 +7,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
+      },
       manifest: {
-        name: "Fruit POS",
-        short_name: "FruitPOS",
-        description: "Simple POS for fruits and vegetables",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        name: "ELY.pos — Retail Platform",
+        short_name: "ELY.pos",
+        description: "Fast, touch-first POS for fresh produce & small retail",
+        theme_color: "#0f172a",
+        background_color: "#0f172a",
         display: "standalone",
         start_url: ".",
         icons: [

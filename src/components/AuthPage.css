@@ -78,6 +78,16 @@
   box-shadow: 0 4px 14px rgba(0, 163, 224, 0.3);
 }
 
+.auth-logo-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(0, 163, 224, 0.35);
+  margin: 0 auto 14px;
+  display: block;
+}
+
 .auth-title {
   font-size: 22px;
   font-weight: 700;
@@ -392,4 +402,29 @@
   text-align: center;
   margin-top: 16px;
   line-height: 1.4;
+}
+
+/* Remember Me row */
+.auth-remember-row {
+  display: flex;
+  align-items: center;
+  margin: 2px 0 10px 0;
+}
+
+.auth-remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #64748b;
+  user-select: none;
+}
+
+.auth-remember-checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
 }

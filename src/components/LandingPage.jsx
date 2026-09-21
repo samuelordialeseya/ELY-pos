@@ -18,13 +18,22 @@ import {
   ExternalLink
 } from "lucide-react";
 
-export default function LandingPage({ onLaunchApp, onOpenAuth, onLaunchDemo, onStartConsumerStory }) {
+export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
   return (
     <div className="landing-container">
       {/* Navigation Header */}
       <header className="landing-nav">
-        <div className="landing-brand" onClick={onLaunchApp} style={{ cursor: 'pointer' }} title="Launch POS App">
-          <div className="landing-logo-box">EP</div>
+        <div 
+          className="landing-brand" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} 
+          style={{ cursor: 'pointer' }} 
+          title="ELY.pos Retail Platform"
+        >
+          <img src="/ely-logo.png" alt="ELY Logo" className="landing-brand-logo" />
           <div className="landing-brand-info">
             <span className="landing-brand-title">ELY.pos</span>
             <span className="landing-brand-badge">v2.4 Retail</span>
@@ -58,9 +67,9 @@ export default function LandingPage({ onLaunchApp, onOpenAuth, onLaunchDemo, onS
           <button className="landing-btn-auth" onClick={onOpenAuth}>
             Sign In
           </button>
-          <button className="landing-btn-demo" onClick={onStartConsumerStory || onLaunchDemo}>
+          <button className="landing-btn-demo" onClick={onLaunchDemo} title="Try Live Demo">
             <Sparkles size={16} />
-            <span>Set Up Store</span>
+            <span>Try Demo</span>
           </button>
         </nav>
       </header>
@@ -85,14 +94,14 @@ export default function LandingPage({ onLaunchApp, onOpenAuth, onLaunchDemo, onS
           </p>
 
           <div className="hero-cta-group">
-            <button className="hero-btn-primary" onClick={onStartConsumerStory || onLaunchDemo}>
+            <button className="hero-btn-primary" onClick={onLaunchDemo}>
               <Sparkles size={18} />
-              <span>Start Interactive Store Setup</span>
+              <span>Try Live Demo</span>
               <ArrowRight size={18} className="cta-arrow" />
             </button>
 
             <button className="hero-btn-secondary" onClick={onOpenAuth}>
-              <span>Sign In / Register Store</span>
+              <span>Register Store / Sign In</span>
             </button>
           </div>
 
@@ -400,7 +409,10 @@ export default function LandingPage({ onLaunchApp, onOpenAuth, onLaunchDemo, onS
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-left">
-          <div className="footer-logo">ELY.pos</div>
+          <div className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/ely-logo.png" alt="ELY" style={{ width: 28, height: 28, borderRadius: 7 }} />
+            <span>ELY.pos</span>
+          </div>
           <p className="footer-tagline">
             Point of Sale & Catalog Management System. Built for Ely's Fresh Fruits & Veggies (Est. 2021).
           </p>
