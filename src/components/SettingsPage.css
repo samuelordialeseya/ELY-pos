@@ -1,0 +1,186 @@
+/* SettingsPage.css - Clean Page-Level Settings Layout */
+
+.settings-page {
+  padding: 32px;
+  max-width: 680px;
+  width: 100%;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box;
+}
+
+.settings-section {
+  margin-bottom: 32px;
+}
+
+.settings-section-title {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.settings-section-title.text-danger {
+  color: #ef4444;
+}
+
+.settings-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.settings-actions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.settings-input-field {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  min-width: 240px;
+  transition: all 0.2s ease;
+}
+
+.settings-input-field:focus {
+  border-color: #00A3E0;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.15);
+}
+
+.settings-select-field {
+  cursor: pointer;
+}
+
+/* User Account Display */
+.account-profile-row {
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+.account-avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00A3E0 0%, #0284c7 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 163, 224, 0.3);
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.account-email {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Buttons */
+.settings-btn {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.settings-btn-danger {
+  color: #ef4444;
+  border-color: #fecaca;
+  background: #ffffff;
+}
+
+.settings-btn-danger:hover {
+  background: #fff5f5;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Saved confirmation */
+.saved-confirm {
+  font-size: 12px;
+  color: #10b981;
+  margin-left: 8px;
+  font-weight: 600;
+  animation: fadeInOut 2s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

@@ -35,22 +35,16 @@ import {
   Camera, 
   Trash2, 
   CheckCircle2, 
-  Info,
   LogOut,
-  Store,
-  User as UserIcon,
-  Settings,
-  ChevronUp,
-  ChevronDown,
-  Compass
+  Settings
 } from "lucide-react";
 
 import { useAuth } from "./context/AuthContext";
 import LandingPage from "./components/LandingPage";
 import AuthPage from "./components/AuthPage";
-import OnboardingModal from "./components/OnboardingModal";
-import ConsumerStoryModal from "./components/ConsumerStoryModal";
-import StoreSetupLaunchpad from "./components/StoreSetupLaunchpad";
+import SetupWizard from "./components/SetupWizard";
+import SettingsPage from "./components/SettingsPage";
+import { flushSync } from "react-dom";
 import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders } from "./data/demoSeed";
 
 const generateId = () => {
@@ -79,12 +73,7 @@ function App() {
     return "landing";
   });
 
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const isHidden = localStorage.getItem("elypos_hide_onboarding") === "true";
-    const isApp = window.location.hash === "#app" || localStorage.getItem("elypos_is_demo") === "true";
-    return isApp && !isHidden;
-  });
+
 
   // Sync hash changes
   useEffect(() => {
@@ -124,28 +113,7 @@ function App() {
   }, [authLoading, user, screen]);
 
   const [view, setView] = useState("dashboard"); 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showLaunchpad, setShowLaunchpad] = useState(() => {
-    return localStorage.getItem("elypos_show_launchpad") === "true";
-  });
-  const settingsRef = useRef(null);
-
-  // Close settings popup when clicking outside
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-        setShowSettings(false);
-      }
-    };
-    if (showSettings) {
-      document.addEventListener("mousedown", handleOutsideClick);
-      document.addEventListener("touchstart", handleOutsideClick);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("touchstart", handleOutsideClick);
-    };
-  }, [showSettings]);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
   
   // --- CLOUD DATA STATES (pre-seeded with demo data if in demo mode) ---
   const [fruits, setFruits] = useState(() => isDemoMode ? DEMO_PRODUCTS : []);
@@ -167,8 +135,10 @@ function App() {
   const [address, setAddress] = useState(""); 
   
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [posSearchTerm, setPosSearchTerm] = useState("");
+  const [invSearchTerm, setInvSearchTerm] = useState("");
+  const [posSelectedCategory, setPosSelectedCategory] = useState("All");
+  const [invSelectedCategory, setInvSelectedCategory] = useState("All");
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [historySearch, setHistorySearch] = useState("");
   const [dashboardRange, setDashboardRange] = useState('today');
@@ -184,8 +154,6 @@ function App() {
     if (user?.displayName) return user.displayName;
     return isOwnerAccount ? "Ely's Store" : "My Store";
   });
-  const [showConsumerStory, setShowConsumerStory] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
   const [completedReceiptModal, setCompletedReceiptModal] = useState(null);
 
   // Sync store name with active user profile if available
@@ -200,14 +168,6 @@ function App() {
       }
     }
   }, [user, isDemoMode]);
-
-  const viewInfo = {
-    dashboard: { title: "Dashboard Overview", text: "View your daily, weekly, or monthly store revenue and performance metrics. Use the date filters to see top-selling items and overall sales trends." },
-    pos: { title: "Point of Sale (POS)", text: "Tap items to add them to the cart. For items sold per kg, adjust the quantity to match the exact weight. Add customer details and click 'Complete Transaction' to record the sale." },
-    inventory: { title: "Inventory Management", text: "Manage your product catalog. Add new items, edit prices, set categories, and configure per-kg or per-unit pricing for all your products." },
-    orders: { title: "Order History", text: "Review all past transactions. You can filter by date or search for a specific customer. Select an order to view its detailed receipt, which you can also download or print." },
-    delivery: { title: "Delivery Manifests", text: "Create daily delivery sheets for your riders. Select the pending orders for the day, and a combined manifest will be generated for printing or saving." }
-  };
 
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
@@ -533,36 +493,9 @@ function App() {
   });
   const historyFilteredRevenue = historyFilteredOrders.reduce((a, b) => a + (b.total || 0), 0);
 
-  // --- STARTER PRODUCE LOADER FOR NEW STORES ---
-  const handleAddStarterProducts = async () => {
-    const starters = [
-      { name: "Avocado Davao", price: 150, unit: "kg", category: "Fruits", created_at: new Date().toISOString() },
-      { name: "Sweet Mango (Carabao)", price: 160, unit: "kg", category: "Fruits", created_at: new Date().toISOString() },
-      { name: "Red Onion (Baguio)", price: 140, unit: "kg", category: "Vegetables", created_at: new Date().toISOString() }
-    ];
 
-    if (isDemoMode) {
-      setFruits(prev => [
-        ...starters.map((s, idx) => ({ id: `starter-${Date.now()}-${idx}`, ...s })),
-        ...prev
-      ]);
-      showToast("3 starter produce items loaded!");
-      return;
-    }
 
-    if (!user) return;
-    try {
-      for (const item of starters) {
-        await addDoc(collection(db, prodCol()), item);
-      }
-      showToast("3 starter produce items added to catalog!");
-    } catch (err) {
-      console.error("Error adding starter items:", err);
-      showToast("Error adding starter items: " + err.message);
-    }
-  };
-
-  // --- GUIDED TOUR (driver.js spotlight highlighting) ---
+  // --- GUIDED TOUR (driver.js spotlight highlighting for single view) ---
   const startTour = (targetView = null) => {
     const runDriver = (activeView) => {
       let steps = [];
@@ -572,12 +505,11 @@ function App() {
           { element: '.weight-selector', popover: { title: '2. Scale Weight Input', description: 'Enter the weight from your digital scale (e.g., 0.85 kg or 2 pcs) and tap Add.', side: "bottom", align: 'start' } },
           { element: '.bill-sidebar', popover: { title: '3. Cart & Customer Info', description: 'Current order items calculate live. Type customer name or delivery address here.', side: "left", align: 'start' } },
           { element: '.btn-checkout', popover: { title: '4. Complete Transaction', description: 'Click to record the sale, increment customer count, and generate a printable digital receipt.', side: "top", align: 'center' } },
-          { element: '.nav-links', popover: { title: '5. POS Navigation', description: 'Quickly switch between Register, Analytics Dashboard, Inventory Catalog, Receipts History, and Delivery Sheets.', side: "right", align: 'start' } },
-          { element: '.settings-tab-trigger', popover: { title: '6. Settings & Launchpad', description: 'Access store settings, onboarding launchpad, reload terminal, and account actions here.', side: "top", align: 'start' } }
+          { element: '.nav-links', popover: { title: '5. POS Navigation', description: 'Quickly switch between Register, Analytics Dashboard, Inventory Catalog, Receipts History, Delivery Sheets, and Settings.', side: "right", align: 'start' } }
         ];
       } else if (activeView === "dashboard") {
         steps = [
-          { element: '.nav-links', popover: { title: 'Navigation', description: 'Switch between Dashboard, POS, Inventory, History, and Delivery here.', side: "right", align: 'start' } },
+          { element: '.nav-links', popover: { title: 'Navigation', description: 'Switch between Dashboard, POS, Inventory, History, Delivery, and Settings here.', side: "right", align: 'start' } },
           { element: '.dash-range-btns', popover: { title: 'Date Filter', description: 'Select the time period you want to analyze.', side: "bottom", align: 'start' } },
           { element: '.dash-metric-grid', popover: { title: 'Key Metrics', description: 'Get a quick overview of your total revenue, transaction counts, and average order values.', side: "bottom", align: 'start' } },
           { element: '.dash-panels', popover: { title: 'Deep Insights', description: 'See your top selling products and a list of the most recent transactions.', side: "top", align: 'start' } },
@@ -598,6 +530,10 @@ function App() {
           { element: '.delivery-step-select', popover: { title: 'Pending Orders', description: 'Select the orders you want to include in today\'s delivery manifest.', side: "right", align: 'start' } },
           { element: '.manifest-sheet', popover: { title: 'Rider Manifest', description: 'A beautifully formatted, print-ready manifest will be generated here based on your selection.', side: "left", align: 'start' } },
         ];
+      } else if (activeView === "settings") {
+        steps = [
+          { element: '.settings-page', popover: { title: 'Store Settings', description: 'Customize your store name, type, and account settings here.', side: "top", align: "start" } }
+        ];
       }
 
       const activeSteps = steps.filter(step => {
@@ -609,7 +545,7 @@ function App() {
       });
 
       if (activeSteps.length === 0) {
-        showToast("Spotlight tour ready on POS screen!");
+        showToast("Spotlight tour ready on current screen!");
         return;
       }
 
@@ -629,6 +565,48 @@ function App() {
     } else {
       runDriver(view);
     }
+  };
+
+  // --- FULL SITE AUTO-NAVIGATING TOUR (Driver.js) ---
+  const startFullSiteTour = () => {
+    setView("dashboard");
+    setTimeout(() => {
+      const viewSwitches = { 1: "dashboard", 3: "pos", 7: "inventory", 8: "orders", 9: "delivery", 11: "settings" };
+      const rawSteps = [
+        { element: '.sidebar', popover: { title: '1. Navigation', description: 'Welcome. These 6 sections are your entire POS terminal.', side: 'right', align: 'start' } },
+        { element: '.dash-metric-grid', popover: { title: '2. Daily Metrics', description: 'Your daily revenue, transaction count, and averages live here.', side: 'bottom', align: 'start' } },
+        { element: '.dash-panels', popover: { title: '3. Store Insights', description: 'Top-selling products and recent orders at a glance.', side: 'top', align: 'start' } },
+        { element: '.product-grid', popover: { title: '4. Product Catalog', description: 'Tap any item to start ringing it up.', side: 'right', align: 'start' } },
+        { element: '.weight-selector', popover: { title: '5. Scale Weight Input', description: 'Enter the scale weight here — the math is instant.', side: 'bottom', align: 'start' } },
+        { element: '.bill-sidebar', popover: { title: '6. Live Cart', description: 'Your current order builds here in real time.', side: 'left', align: 'start' } },
+        { element: '.btn-checkout', popover: { title: '7. Checkout', description: 'Complete Transaction saves the sale and generates a receipt.', side: 'top', align: 'center' } },
+        { element: '.inv-form-card', popover: { title: '8. Inventory Management', description: 'Add and manage your entire product catalog here.', side: 'bottom', align: 'start' } },
+        { element: '.orders-controls', popover: { title: '9. Transaction History', description: 'Filter past transactions by date or customer name.', side: 'bottom', align: 'start' } },
+        { element: '.delivery-step-select', popover: { title: '10. Delivery Planning', description: 'Select today\'s delivery orders to build a manifest.', side: 'right', align: 'start' } },
+        { element: '.manifest-sheet', popover: { title: '11. Rider Manifest', description: 'Your rider sheet generates automatically — download as image.', side: 'left', align: 'start' } },
+        { element: '.settings-page', popover: { title: '12. Store Settings', description: 'Customize your store name, type, and account settings here.', side: 'top', align: 'start' } }
+      ];
+
+      const tour = driver({
+        showProgress: true,
+        animate: true,
+        steps: rawSteps,
+        popoverClass: 'driverjs-theme',
+        onHighlightStarted: (el, step, { state, driver: dInstance }) => {
+          if (viewSwitches[state.activeIndex] !== undefined) {
+            flushSync(() => {
+              setView(viewSwitches[state.activeIndex]);
+            });
+            if (dInstance && dInstance.refresh) {
+              dInstance.refresh();
+              setTimeout(() => dInstance.refresh(), 50);
+            }
+          }
+        }
+      });
+
+      tour.drive();
+    }, 150);
   };
 
   // --- RENDER SCREEN DISPATCH ---
@@ -669,9 +647,7 @@ function App() {
           setView("pos");
           setScreen("app");
           window.location.hash = "#app";
-          setTimeout(() => {
-            startTour("pos");
-          }, 350);
+          setTimeout(() => startFullSiteTour(), 400);
         }}
       />
     );
@@ -685,8 +661,8 @@ function App() {
           window.location.hash = "#landing";
         }}
         onSuccessLogin={() => {
-          if (localStorage.getItem("elypos_show_launchpad") === "true") {
-            setShowLaunchpad(true);
+          if (localStorage.getItem("elypos_setup_done") !== "true") {
+            setShowSetupWizard(true);
           }
           setScreen("app");
           window.location.hash = "#app";
@@ -695,159 +671,42 @@ function App() {
     );
   }
 
+  const viewLabels = { dashboard: "Dashboard", pos: "Point of Sale", inventory: "Inventory Management", orders: "Order History", delivery: "Delivery", settings: "Settings" };
+
   // --- RENDER MAIN POS TERMINAL ---
   return (
-    <div className="pos-layout">
+    <div className={`pos-layout${view !== 'pos' ? ' no-cart' : ''}`}>
       <aside className="sidebar">
         <div className="brand" title="Active Store">
           <img src="/ely-logo.png" alt="ELY" className="brand-logo-img" />
           <h2 className="brand-text">{storeName}</h2>
         </div>
         <nav className="nav-links">
-          <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => { setView('dashboard'); setShowSettings(false); }}>
+          <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>
             <span className="nav-icon nav-icon-dashboard"><LayoutDashboard size={18} /></span>
             <span className="nav-text">Dashboard</span>
           </div>
-          <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => { setView('pos'); setShowSettings(false); }}>
+          <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => setView('pos')}>
             <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} /></span>
             <span className="nav-text">POS</span>
           </div>
-          <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => { setView('inventory'); setShowSettings(false); }}>
+          <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>
             <span className="nav-icon nav-icon-inventory"><Package size={18} /></span>
             <span className="nav-text">Inventory</span>
           </div>
-          <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => { setView('orders'); setShowSettings(false); }}>
+          <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => setView('orders')}>
             <span className="nav-icon nav-icon-orders"><ClipboardList size={18} /></span>
             <span className="nav-text">History</span>
           </div>
-          <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => { setView('delivery'); setShowSettings(false); }}>
+          <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => setView('delivery')}>
             <span className="nav-icon nav-icon-delivery"><Truck size={18} /></span>
             <span className="nav-text">Delivery</span>
           </div>
-        </nav>
-
-        <div className="sidebar-footer" ref={settingsRef}>
-          {/* Collapsible Settings Popover */}
-          {showSettings && (
-            <div className="settings-popup">
-              <div className="settings-popup-header">
-                <div className="settings-user-row">
-                  <div className="settings-user-avatar">
-                    {isDemoMode ? <Sparkles size={16} /> : <UserIcon size={16} />}
-                  </div>
-                  <div className="settings-user-meta">
-                    <span className="settings-user-name">
-                      {isDemoMode ? "Demo Mode" : (user?.displayName || user?.email?.split('@')[0] || "Store User")}
-                    </span>
-                    <span className="settings-user-email">
-                      {isDemoMode ? "Guest Sandbox" : user?.email}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="settings-store-section">
-                <label className="settings-field-label">Store Name</label>
-                <div className="settings-input-group">
-                  <input
-                    type="text"
-                    className="settings-input"
-                    value={storeName}
-                    placeholder="Enter store name..."
-                    onChange={e => setStoreName(e.target.value)}
-                    onBlur={async () => {
-                      const trimmed = storeName.trim() || "My Store";
-                      setStoreName(trimmed);
-                      localStorage.setItem("elypos_store_name", trimmed);
-                      if (!isDemoMode && user) {
-                        try {
-                          await setDoc(settDoc(), { store_name: trimmed }, { merge: true });
-                          showToast("Store name updated");
-                        } catch (err) {
-                          console.error("Store name update error:", err);
-                        }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="settings-divider" />
-
-              <div className="settings-actions-group">
-                <button
-                  className="settings-action-btn"
-                  onClick={() => {
-                    setShowSettings(false);
-                    setShowLaunchpad(true);
-                  }}
-                  title="Store Setup Launchpad"
-                >
-                  <span className="settings-action-icon"><Compass size={15} /></span>
-                  <span>Store Setup Launchpad</span>
-                </button>
-
-                <button
-                  className="settings-action-btn"
-                  onClick={() => {
-                    setShowSettings(false);
-                    startTour("pos");
-                  }}
-                  title="Interactive Spotlight Tour"
-                >
-                  <span className="settings-action-icon"><Sparkles size={15} /></span>
-                  <span>Interactive Tour (Driver.js)</span>
-                </button>
-
-                <button
-                  className="settings-action-btn"
-                  onClick={() => {
-                    if (window.confirm("Reload the POS? Unsaved checkout items will be cleared.")) {
-                      window.location.reload();
-                    }
-                  }}
-                  title="Reload App"
-                >
-                  <span className="settings-action-icon"><RotateCw size={15} /></span>
-                  <span>Reload Terminal</span>
-                </button>
-
-                <button
-                  className="settings-action-btn settings-action-signout"
-                  onClick={async () => {
-                    setShowSettings(false);
-                    await logoutUser();
-                    setFruits([]);
-                    setCompletedOrders([]);
-                    setStoreName("My Store");
-                    localStorage.removeItem("elypos_store_name");
-                    setScreen("landing");
-                    window.location.hash = "#landing";
-                  }}
-                  title="Sign Out"
-                >
-                  <span className="settings-action-icon"><LogOut size={15} /></span>
-                  <span>{isDemoMode ? "Exit Demo" : "Sign Out"}</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Bottom Left Settings Tab Trigger */}
-          <div
-            className={`nav-item settings-tab-trigger ${showSettings ? 'active' : ''}`}
-            onClick={() => setShowSettings(prev => !prev)}
-            title="Settings & Account"
-          >
-            <div className="settings-trigger-left">
-              <span className="nav-icon nav-icon-settings"><Settings size={18} /></span>
-              <span className="nav-text">Settings</span>
-            </div>
-            <span className="settings-trigger-chevron">
-              {showSettings ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
-            </span>
+          <div className={`nav-item ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>
+            <span className="nav-icon nav-icon-settings"><Settings size={18} /></span>
+            <span className="nav-text">Settings</span>
           </div>
-        </div>
+        </nav>
       </aside>
 
       <main className="main-viewport">
@@ -862,7 +721,7 @@ function App() {
                   <p className="dash-greeting-sub">Here's your store overview.</p>
                 </div>
               ) : (
-                <h3 className="section-title">{view.toUpperCase()}</h3>
+                <h3 className="section-title">{viewLabels[view] || view}</h3>
               )}
             </div>
             <div className="header-right-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -887,7 +746,7 @@ function App() {
                   </button>
                 </div>
               )}
-              <button className="btn-help-icon" onClick={() => setShowOnboarding(true)} title="Setup Guide & Tour">
+              <button className="btn-help-icon" onClick={() => startTour(view)} title="Setup Guide & Tour">
                 ?
               </button>
               <div className="info-pill"><span className="pill-label">Today</span><span className="pill-value">{new Date().toLocaleDateString()}</span></div>
@@ -896,17 +755,17 @@ function App() {
 
           {view === 'pos' && (
             <div className="pos-search-wrapper">
-              <input type="text" className="top-search" placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+              <input type="text" className="top-search" placeholder="Search products..." value={posSearchTerm} onChange={e => setPosSearchTerm(e.target.value)} />
               <div className="category-filter-bar">
                 {['All', ...new Set(fruits.map(f => f.category))].map(cat => (
-                  <button key={cat} className={`cat-filter-btn ${selectedCategory === cat ? 'active' : ''}`} onClick={() => setSelectedCategory(cat)}>{cat}</button>
+                  <button key={cat} className={`cat-filter-btn ${posSelectedCategory === cat ? 'active' : ''}`} onClick={() => setPosSelectedCategory(cat)}>{cat}</button>
                 ))}
               </div>
             </div>
           )}
         </header>
 
-        {(view === 'pos' || view === 'preorder') && (
+        {view === 'pos' && (
           <div className="product-grid">
             {fruits.length === 0 ? (
               <div className="empty-catalog-state">
@@ -918,7 +777,7 @@ function App() {
                 </button>
               </div>
             ) : (
-              fruits.filter(f => (selectedCategory === "All" || f.category === selectedCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase())).map(f => (
+              fruits.filter(f => (posSelectedCategory === "All" || f.category === posSelectedCategory) && f.name.toLowerCase().includes(posSearchTerm.toLowerCase())).map(f => (
                 <div key={f.id} className="food-card">
                   <div className="card-cat">{f.category}</div>
                   <div className="food-img-circle"></div>
@@ -1046,22 +905,34 @@ function App() {
           <div className="inventory-screen">
             <div className="inv-actions-top" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0', gap: '15px' }}>
               <div className="pos-search-wrapper" style={{ flex: '1 1 200px', minWidth: 0 }}>
-                <input type="text" className="top-search" placeholder="Search inventory..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                <input type="text" className="top-search" placeholder="Search inventory..." value={invSearchTerm} onChange={e => setInvSearchTerm(e.target.value)} />
                 <div className="category-filter-bar">
                   {['All', ...new Set(fruits.map(f => f.category))].map(cat => (
-                    <button key={cat} className={`cat-filter-btn ${selectedCategory === cat ? 'active' : ''}`} onClick={() => setSelectedCategory(cat)}>{cat}</button>
+                    <button key={cat} className={`cat-filter-btn ${invSelectedCategory === cat ? 'active' : ''}`} onClick={() => setInvSelectedCategory(cat)}>{cat}</button>
                   ))}
                 </div>
               </div>
             </div>
              <div className="inv-form-card">
-              <div className="form-grid">
-                <input placeholder="Product Name" value={name} onChange={e => setName(e.target.value)} />
-                <input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-                <input placeholder="Unit (kg/pc)" value={unit} onChange={e => setUnit(e.target.value)} />
-                <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} />
-              </div>
-              <button className="btn-save-inv" onClick={addFruit}>+ Add to Inventory</button>
+              <form onSubmit={addFruit}>
+                <div className="form-grid">
+                  <input placeholder="Product Name" value={name} onChange={e => setName(e.target.value)} />
+                  <input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
+                  <input placeholder="Unit (kg/pc)" value={unit} onChange={e => setUnit(e.target.value)} />
+                  <input 
+                    list="category-suggestions" 
+                    placeholder="Category" 
+                    value={category} 
+                    onChange={e => setCategory(e.target.value)} 
+                  />
+                  <datalist id="category-suggestions">
+                    {[...new Set(fruits.map(f => f.category).filter(Boolean))].map(cat => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
+                </div>
+                <button type="submit" className="btn-save-inv">+ Add to Inventory</button>
+              </form>
             </div>
 
             <table className="inv-table">
@@ -1075,8 +946,8 @@ function App() {
                   </tr>
                 )}
                 {fruits
-                  .filter(f => (selectedCategory === "All" || f.category === selectedCategory))
-                  .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(f => (invSelectedCategory === "All" || f.category === invSelectedCategory))
+                  .filter(f => f.name.toLowerCase().includes(invSearchTerm.toLowerCase()))
                   .map(f => (
                   <tr key={f.id}>
                     {editingId === f.id ? (
@@ -1195,7 +1066,7 @@ function App() {
               </div>
               <div id="manifest-area-capture" className="manifest-sheet">
                 <div className="manifest-header">
-                  <h2>ELY'S RIDER MANIFEST</h2>
+                  <h2>{storeName.toUpperCase()}'S RIDER MANIFEST</h2>
                   <div className="manifest-meta"><span>Date: {filterDate}</span><span>Rider: _________________</span></div>
                 </div>
                 <table className="manifest-table">
@@ -1215,31 +1086,60 @@ function App() {
             </div>
           </div>
         )}
+
+        {view === 'settings' && (
+          <SettingsPage
+            storeName={storeName}
+            onUpdateStoreName={async (newName) => {
+              setStoreName(newName);
+              localStorage.setItem("elypos_store_name", newName);
+              if (!isDemoMode && user) {
+                await setDoc(settDoc(), { store_name: newName }, { merge: true });
+              }
+            }}
+            isDemoMode={isDemoMode}
+            user={user}
+            onRerunWizard={() => setShowSetupWizard(true)}
+            onStartFullTour={startFullSiteTour}
+            onReload={() => { if (window.confirm("Reload the POS? Unsaved checkout items will be cleared.")) window.location.reload(); }}
+            onSignOut={async () => {
+              await logoutUser();
+              setFruits([]);
+              setCompletedOrders([]);
+              setStoreName("My Store");
+              localStorage.removeItem("elypos_store_name");
+              setScreen("landing");
+              window.location.hash = "#landing";
+            }}
+          />
+        )}
       </main>
 
-      <aside className="bill-sidebar">
-  <div className="bill-header">
-    <div className="order-tag">Checkout</div>
-    <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
-    <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
-  </div>
-  <div className="bill-items">
-    {cart.map(item => (
-      <div key={item.cartId} className="bill-row">
-        <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
-        <div className="bill-item-right">
-          <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
-          <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))} title="Remove item"><X size={14} /></button>
-        </div>
-      </div>
-    ))}
-  </div>
-  <div className="bill-footer">
-    <div className="total-line"><span>Total:</span><span>₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span></div>
-    <button className="btn-navy" onClick={() => setCart([])}>Clear</button>
-    <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
-  </div>
-</aside>
+      {view === 'pos' && (
+        <aside className="bill-sidebar">
+          <div className="bill-header">
+            <div className="order-tag">Checkout</div>
+            <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
+            <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
+          </div>
+          <div className="bill-items">
+            {cart.map(item => (
+              <div key={item.cartId} className="bill-row">
+                <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
+                <div className="bill-item-right">
+                  <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
+                  <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))} title="Remove item"><X size={14} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bill-footer">
+            <div className="total-line"><span>Total:</span><span>₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span></div>
+            <button className="btn-navy" onClick={() => setCart([])}>Clear</button>
+            <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
+          </div>
+        </aside>
+      )}
       {completedReceiptModal && (
         <div className="parser-modal-overlay" onClick={() => setCompletedReceiptModal(null)}>
           <div className="parser-modal-content receipt-popup-modal" onClick={e => e.stopPropagation()}>
@@ -1310,80 +1210,22 @@ function App() {
         </div>
       )}
 
-      {showInfoModal && (
-        <div className="parser-modal-overlay" onClick={() => setShowInfoModal(false)}>
-          <div className="parser-modal-content info-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center', padding: '30px' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px', color: 'var(--primary)' }}><Info size={40} /></div>
-            <h3 style={{ marginBottom: '10px', color: 'var(--secondary)' }}>{viewInfo[view]?.title}</h3>
-            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '15px', marginBottom: '25px' }}>
-              {viewInfo[view]?.text}
-            </p>
-            <button className="btn-navy" style={{ width: '100%', padding: '12px', borderRadius: '10px' }} onClick={() => setShowInfoModal(false)}>
-              Got it!
-            </button>
-          </div>
-        </div>
-      )}
-
-      <StoreSetupLaunchpad
-        isOpen={showLaunchpad}
-        onClose={() => {
-          setShowLaunchpad(false);
-          localStorage.removeItem("elypos_show_launchpad");
-        }}
-        storeName={storeName}
-        onUpdateStoreName={async (newName) => {
-          setStoreName(newName);
-          localStorage.setItem("elypos_store_name", newName);
+      <SetupWizard
+        isOpen={showSetupWizard}
+        onComplete={(newStoreName, storeType) => {
+          setStoreName(newStoreName);
+          localStorage.setItem("elypos_store_name", newStoreName);
+          localStorage.setItem("elypos_store_type", storeType);
+          localStorage.setItem("elypos_setup_done", "true");
           if (!isDemoMode && user) {
-            try {
-              await setDoc(settDoc(), { store_name: newName }, { merge: true });
-            } catch (e) {
-              console.error(e);
-            }
+            setDoc(settDoc(), { store_name: newStoreName }, { merge: true }).catch(console.error);
           }
-          showToast(`Store renamed to ${newName}!`);
+          setShowSetupWizard(false);
+          setTimeout(() => startFullSiteTour(), 300);
         }}
-        onAddStarterProducts={handleAddStarterProducts}
-        onStartTour={() => {
-          setShowLaunchpad(false);
-          localStorage.removeItem("elypos_show_launchpad");
-          startTour("pos");
-        }}
-        onNavigateView={(newView) => setView(newView)}
-      />
-
-      <OnboardingModal 
-        isOpen={showOnboarding} 
-        onClose={() => setShowOnboarding(false)} 
-        onStartTour={startTour} 
-      />
-
-      <ConsumerStoryModal 
-        isOpen={showConsumerStory}
-        onClose={() => setShowConsumerStory(false)}
-        currentStoreName={storeName}
-        onUpdateStoreName={(newName) => {
-          setStoreName(newName);
-          localStorage.setItem("elypos_store_name", newName);
-          showToast(`Store renamed to ${newName}!`);
-        }}
-        onNavigateView={(newView) => setView(newView)}
-        onAddSampleProduct={(sample) => {
-          const newProd = {
-            id: `sample-${Date.now()}`,
-            name: sample.name,
-            price: sample.price,
-            unit: sample.unit,
-            category: sample.category,
-            created_at: new Date().toISOString()
-          };
-          setFruits(prev => [newProd, ...prev]);
-          showToast(`Added ${sample.name} to Catalog!`);
-        }}
-        onOpenAuth={() => {
-          setScreen("auth");
-          window.location.hash = "#auth";
+        onSkip={() => {
+          localStorage.setItem("elypos_setup_done", "true");
+          setShowSetupWizard(false);
         }}
       />
 

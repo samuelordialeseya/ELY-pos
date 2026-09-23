@@ -1,0 +1,468 @@
+/* SetupWizard.css - 3-Step First-Time Store Setup */
+
+.wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: wizardFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes wizardFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wizard-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 520px;
+  padding: 36px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  animation: wizardScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes wizardScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Slide Transition Animations */
+.wizard-slide-container {
+  width: 100%;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.appear-anim {
+  animation: appearSmooth 0.25s ease-out forwards;
+}
+
+@keyframes appearSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Wizard Header Elements */
+.wizard-step-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.wizard-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: #E0F7FF;
+  color: #00A3E0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.wizard-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.wizard-subtext {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  max-width: 420px;
+}
+
+/* Step 1: Input & Underline */
+.wizard-input-container {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.wizard-name-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 6px;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: center;
+  outline: none;
+}
+
+.wizard-name-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.wizard-input-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.wizard-underline-fill {
+  height: 100%;
+  background: #00A3E0;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2px;
+}
+
+.wizard-live-preview {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 20px;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+  max-width: 420px;
+  width: 100%;
+}
+
+.preview-store-highlight {
+  color: #00A3E0;
+  font-weight: 600;
+}
+
+/* Suggestion Chips */
+.wizard-suggestions-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.wizard-suggestions-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.wizard-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.wizard-chip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wizard-chip:hover {
+  background: #f0f9ff;
+  border-color: #00A3E0;
+  color: #00A3E0;
+  transform: translateY(-1px);
+}
+
+.wizard-chip.active {
+  background: #E0F7FF;
+  border-color: #00A3E0;
+  color: #00A3E0;
+  font-weight: 600;
+}
+
+/* Step 2: Store Types Grid */
+.wizard-types-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.wizard-type-card {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wizard-type-card:hover {
+  border-color: #93c5fd;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.wizard-type-card.selected {
+  border-color: #00A3E0;
+  background: #f0f9ff;
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 163, 224, 0.15);
+}
+
+.type-card-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  color: #00A3E0;
+  display: flex;
+  align-items: center;
+  animation: popBadge 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popBadge {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.type-card-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.type-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.type-card-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Step 3: Celebration Checkmark & Pulsing CTA */
+.celebration-content {
+  padding-top: 10px;
+}
+
+.celebration-icon-wrapper {
+  margin-bottom: 8px;
+}
+
+.celebration-checkmark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3.5;
+  stroke: #10B981;
+  stroke-miterlimit: 10;
+  margin: 0 auto 16px;
+  animation: checkmarkScale 0.35s ease-in-out 0.8s both;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3.5;
+  stroke-miterlimit: 10;
+  stroke: #10B981;
+  fill: none;
+  animation: checkmarkStroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke-width: 4;
+  stroke: #10B981;
+  animation: checkmarkCheck 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
+}
+
+@keyframes checkmarkStroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmarkCheck {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmarkScale {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+.celebration-heading {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.celebration-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Buttons */
+.wizard-cta-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.wizard-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #00A3E0;
+  color: #ffffff;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 163, 224, 0.3);
+}
+
+.wizard-btn-primary:hover:not(:disabled) {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 163, 224, 0.4);
+}
+
+.wizard-btn-primary:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Pulsing Glow Animation */
+.pulse-glow-btn {
+  animation: pulse-glow 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 14px rgba(0, 163, 224, 0.4), 0 0 0 0 rgba(0, 163, 224, 0.5);
+  }
+  50% {
+    box-shadow: 0 6px 22px rgba(0, 163, 224, 0.6), 0 0 0 10px rgba(0, 163, 224, 0);
+  }
+}
+
+.wizard-skip-link {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.15s ease;
+}
+
+.wizard-skip-link:hover {
+  color: #0f172a;
+}
+
+/* Progress Dots */
+.wizard-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.wizard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wizard-dot.active {
+  width: 22px;
+  border-radius: 10px;
+  background: #00A3E0;
+}

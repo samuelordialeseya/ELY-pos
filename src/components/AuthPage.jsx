@@ -107,6 +107,16 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
     if (onSuccessLogin) onSuccessLogin();
   };
 
+  const handleToggleSignUp = (signUpMode) => {
+    setIsSignUp(signUpMode);
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setDisplayName("");
+    setError("");
+    setSuccessMsg("");
+  };
+
   return (
     <div className="auth-page-container">
       <div className="auth-card">
@@ -146,14 +156,14 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
           <button 
             type="button"
             className={`auth-tab ${!isSignUp ? "active" : ""}`} 
-            onClick={() => { setIsSignUp(false); setError(""); }}
+            onClick={() => handleToggleSignUp(false)}
           >
             Sign In
           </button>
           <button 
             type="button"
             className={`auth-tab ${isSignUp ? "active" : ""}`} 
-            onClick={() => { setIsSignUp(true); setError(""); }}
+            onClick={() => handleToggleSignUp(true)}
           >
             Create Account
           </button>
@@ -302,7 +312,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
               <button 
                 type="button" 
                 className="auth-switch-btn" 
-                onClick={() => { setIsSignUp(false); setError(""); setSuccessMsg(""); }}
+                onClick={() => handleToggleSignUp(false)}
               >
                 Sign In
               </button>
@@ -313,7 +323,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
               <button 
                 type="button" 
                 className="auth-switch-btn" 
-                onClick={() => { setIsSignUp(true); setError(""); setSuccessMsg(""); }}
+                onClick={() => handleToggleSignUp(true)}
               >
                 Create Account
               </button>
