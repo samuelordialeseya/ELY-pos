@@ -67,10 +67,13 @@ export function AuthProvider({ children }) {
         await updateProfile(cred.user, { displayName: storeNameToUse });
       }
       localStorage.setItem("elypos_store_name", storeNameToUse);
+      localStorage.removeItem("elypos_setup_done");
+      localStorage.removeItem(`elypos_setup_done_${cred.user.uid}`);
       try {
         await setDoc(doc(db, "users", cred.user.uid, "app_settings", "global"), {
           store_name: storeNameToUse,
           customer_count: 1,
+          setup_done: false,
           created_at: new Date().toISOString()
         }, { merge: true });
       } catch (err) {

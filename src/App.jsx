@@ -114,6 +114,13 @@ function App() {
 
   const [view, setView] = useState("dashboard"); 
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+
+  // Ensure view always defaults away from 'settings' when entering the app screen
+  useEffect(() => {
+    if (screen === "app" && view === "settings") {
+      setView("dashboard");
+    }
+  }, [screen]);
   
   // --- CLOUD DATA STATES (pre-seeded with demo data if in demo mode) ---
   const [fruits, setFruits] = useState(() => isDemoMode ? DEMO_PRODUCTS : []);
@@ -219,10 +226,19 @@ function App() {
 
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
-        setCustomerCount(docSnap.data().customer_count || 1);
-        if (docSnap.data().store_name) {
-          setStoreName(docSnap.data().store_name);
-          localStorage.setItem("elypos_store_name", docSnap.data().store_name);
+        const data = docSnap.data();
+        setCustomerCount(data.customer_count || 1);
+        if (data.store_name) {
+          setStoreName(data.store_name);
+          localStorage.setItem("elypos_store_name", data.store_name);
+        }
+        if (data.setup_done === true) {
+          localStorage.setItem(`elypos_setup_done_${user.uid}`, "true");
+          localStorage.setItem("elypos_setup_done", "true");
+        } else if (data.setup_done === false) {
+          if (localStorage.getItem(`elypos_setup_done_${user.uid}`) !== "true") {
+            setShowSetupWizard(true);
+          }
         }
       } else if (user?.displayName) {
         setStoreName(user.displayName);
@@ -592,6 +608,9 @@ function App() {
         animate: true,
         steps: rawSteps,
         popoverClass: 'driverjs-theme',
+        onDestroyed: () => {
+          setView("dashboard");
+        },
         onHighlightStarted: (el, step, { state, driver: dInstance }) => {
           if (viewSwitches[state.activeIndex] !== undefined) {
             flushSync(() => {
@@ -660,9 +679,22 @@ function App() {
           setScreen("landing");
           window.location.hash = "#landing";
         }}
-        onSuccessLogin={() => {
-          if (localStorage.getItem("elypos_setup_done") !== "true") {
+        onSuccessLogin={({ isSignUp, storeName: registeredStoreName, user: authedUser } = {}) => {
+          setView("dashboard");
+          if (registeredStoreName) {
+            setStoreName(registeredStoreName);
+          }
+          if (isSignUp) {
+            localStorage.removeItem("elypos_setup_done");
+            if (authedUser?.uid) localStorage.removeItem(`elypos_setup_done_${authedUser.uid}`);
             setShowSetupWizard(true);
+          } else {
+            const uid = authedUser?.uid || user?.uid;
+            const userSetupDone = uid ? localStorage.getItem(`elypos_setup_done_${uid}`) : null;
+            const globalSetupDone = localStorage.getItem("elypos_setup_done");
+            if (userSetupDone !== "true" && globalSetupDone !== "true") {
+              setShowSetupWizard(true);
+            }
           }
           setScreen("app");
           window.location.hash = "#app";
@@ -737,6 +769,7 @@ function App() {
                       setCompletedOrders([]);
                       setStoreName("My Store");
                       localStorage.removeItem("elypos_store_name");
+                      setView("dashboard");
                       setScreen("landing");
                       window.location.hash = "#landing";
                     }}
@@ -1108,6 +1141,7 @@ function App() {
               setCompletedOrders([]);
               setStoreName("My Store");
               localStorage.removeItem("elypos_store_name");
+              setView("dashboard");
               setScreen("landing");
               window.location.hash = "#landing";
             }}
@@ -1217,14 +1251,23 @@ function App() {
           localStorage.setItem("elypos_store_name", newStoreName);
           localStorage.setItem("elypos_store_type", storeType);
           localStorage.setItem("elypos_setup_done", "true");
+          if (user?.uid) {
+            localStorage.setItem(`elypos_setup_done_${user.uid}`, "true");
+          }
           if (!isDemoMode && user) {
-            setDoc(settDoc(), { store_name: newStoreName }, { merge: true }).catch(console.error);
+            setDoc(settDoc(), { store_name: newStoreName, store_type: storeType, setup_done: true }, { merge: true }).catch(console.error);
           }
           setShowSetupWizard(false);
           setTimeout(() => startFullSiteTour(), 300);
         }}
         onSkip={() => {
           localStorage.setItem("elypos_setup_done", "true");
+          if (user?.uid) {
+            localStorage.setItem(`elypos_setup_done_${user.uid}`, "true");
+          }
+          if (!isDemoMode && user) {
+            setDoc(settDoc(), { setup_done: true }, { merge: true }).catch(console.error);
+          }
           setShowSetupWizard(false);
         }}
       />

@@ -57,15 +57,21 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
 
     setLoading(true);
     try {
+      let authUser = null;
       if (isSignUp) {
         const storeNameClean = displayName?.trim() || "My Store";
         localStorage.setItem("elypos_store_name", storeNameClean);
-        await registerWithEmail(email, password, storeNameClean);
+        localStorage.removeItem("elypos_setup_done");
+        authUser = await registerWithEmail(email, password, storeNameClean);
+        if (authUser?.uid) {
+          localStorage.removeItem(`elypos_setup_done_${authUser.uid}`);
+        }
         setSuccessMsg("Account created successfully!");
+        if (onSuccessLogin) onSuccessLogin({ isSignUp: true, storeName: storeNameClean, user: authUser });
       } else {
-        await loginWithEmail(email, password, rememberMe);
+        authUser = await loginWithEmail(email, password, rememberMe);
+        if (onSuccessLogin) onSuccessLogin({ isSignUp: false, user: authUser });
       }
-      if (onSuccessLogin) onSuccessLogin();
     } catch (err) {
       console.error("Auth error:", err);
       let message = "Authentication failed. Please try again.";
@@ -90,8 +96,8 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
     setError("");
     setLoading(true);
     try {
-      await loginWithGoogle();
-      if (onSuccessLogin) onSuccessLogin();
+      const googleUser = await loginWithGoogle();
+      if (onSuccessLogin) onSuccessLogin({ isSignUp: false, user: googleUser });
     } catch (err) {
       console.error("Google sign-in error:", err);
       if (err.code !== "auth/popup-closed-by-user") {

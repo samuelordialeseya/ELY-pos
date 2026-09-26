@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { RotateCw, Compass, RefreshCw, LogOut } from "lucide-react";
 import "./SettingsPage.css";
 
 export default function SettingsPage({
@@ -112,7 +113,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onRerunWizard}
           >
-            <span>🔄</span>
+            <RotateCw size={16} />
             <span>Re-run Setup Wizard</span>
           </button>
           <button
@@ -120,7 +121,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onStartFullTour}
           >
-            <span>🧭</span>
+            <Compass size={16} />
             <span>Take Full Guided Tour</span>
           </button>
         </div>
@@ -141,7 +142,7 @@ export default function SettingsPage({
               }
             }}
           >
-            <span>🔃</span>
+            <RefreshCw size={16} />
             <span>Reload Terminal</span>
           </button>
         </div>
@@ -156,7 +157,7 @@ export default function SettingsPage({
             className="settings-btn settings-btn-danger"
             onClick={onSignOut}
           >
-            <span>🚪</span>
+            <LogOut size={16} />
             <span>{isDemoMode ? "Exit Demo" : "Sign Out"}</span>
           </button>
         </div>
