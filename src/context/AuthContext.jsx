@@ -7,6 +7,7 @@ import {
   OWNER_EMAIL
 } from "../firebaseClient";
 import { doc, setDoc } from "firebase/firestore";
+import { DEFAULT_RECEIPT_CONFIG } from "../data/receiptConfig";
 
 import { 
   signInWithEmailAndPassword, 
@@ -74,6 +75,7 @@ export function AuthProvider({ children }) {
           store_name: storeNameToUse,
           customer_count: 1,
           setup_done: false,
+          receipt_config: DEFAULT_RECEIPT_CONFIG,
           created_at: new Date().toISOString()
         }, { merge: true });
       } catch (err) {

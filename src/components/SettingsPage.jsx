@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { RotateCw, Compass, RefreshCw, LogOut } from "lucide-react";
+import ReceiptTemplateEditor from "./ReceiptTemplateEditor";
 import "./SettingsPage.css";
 
 export default function SettingsPage({
   storeName,
   onUpdateStoreName,
+  receiptConfig,
+  onUpdateReceiptConfig,
   isDemoMode,
   user,
   onRerunWizard,
@@ -84,7 +87,19 @@ export default function SettingsPage({
         </div>
       </section>
 
-      {/* ─── 2. ACCOUNT ─── */}
+      {/* ─── 2. RECEIPT TEMPLATE ─── */}
+      <section className="settings-section">
+        <h3 className="settings-section-title">Receipt Template</h3>
+        <div className="settings-card receipt-settings-card">
+          <ReceiptTemplateEditor
+            receiptConfig={receiptConfig}
+            storeName={localName}
+            onSave={onUpdateReceiptConfig}
+          />
+        </div>
+      </section>
+
+      {/* ─── 3. ACCOUNT ─── */}
       <section className="settings-section">
         <h3 className="settings-section-title">Account</h3>
         <div className="settings-card">
@@ -104,7 +119,7 @@ export default function SettingsPage({
         </div>
       </section>
 
-      {/* ─── 3. ONBOARDING ─── */}
+      {/* ─── 4. ONBOARDING ─── */}
       <section className="settings-section">
         <h3 className="settings-section-title">Onboarding & Tutorials</h3>
         <div className="settings-card settings-actions-card">
@@ -127,7 +142,7 @@ export default function SettingsPage({
         </div>
       </section>
 
-      {/* ─── 4. TERMINAL ─── */}
+      {/* ─── 5. TERMINAL ─── */}
       <section className="settings-section">
         <h3 className="settings-section-title">Terminal Maintenance</h3>
         <div className="settings-card settings-actions-card">
@@ -148,7 +163,7 @@ export default function SettingsPage({
         </div>
       </section>
 
-      {/* ─── 5. DANGER ZONE ─── */}
+      {/* ─── 6. DANGER ZONE ─── */}
       <section className="settings-section">
         <h3 className="settings-section-title text-danger">Danger Zone</h3>
         <div className="settings-card settings-actions-card">

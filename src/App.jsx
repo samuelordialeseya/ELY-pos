@@ -46,6 +46,7 @@ import SetupWizard from "./components/SetupWizard";
 import SettingsPage from "./components/SettingsPage";
 import { flushSync } from "react-dom";
 import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders } from "./data/demoSeed";
+import { DEFAULT_RECEIPT_CONFIG, formatReceiptText } from "./data/receiptConfig";
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -162,6 +163,15 @@ function App() {
     return isOwnerAccount ? "Ely's Store" : "My Store";
   });
   const [completedReceiptModal, setCompletedReceiptModal] = useState(null);
+  const [receiptConfig, setReceiptConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem("elypos_receipt_config");
+      if (saved) return { ...DEFAULT_RECEIPT_CONFIG, ...JSON.parse(saved) };
+    } catch (e) {
+      console.error("Error parsing elypos_receipt_config from localStorage:", e);
+    }
+    return DEFAULT_RECEIPT_CONFIG;
+  });
 
   // Sync store name with active user profile if available
   useEffect(() => {
@@ -232,6 +242,11 @@ function App() {
           setStoreName(data.store_name);
           localStorage.setItem("elypos_store_name", data.store_name);
         }
+        if (data.receipt_config) {
+          const mergedConfig = { ...DEFAULT_RECEIPT_CONFIG, ...data.receipt_config };
+          setReceiptConfig(mergedConfig);
+          localStorage.setItem("elypos_receipt_config", JSON.stringify(mergedConfig));
+        }
         if (data.setup_done === true) {
           localStorage.setItem(`elypos_setup_done_${user.uid}`, "true");
           localStorage.setItem("elypos_setup_done", "true");
@@ -265,6 +280,21 @@ function App() {
   const settDoc  = () => isOwnerAccount
     ? doc(db, "app_settings", "global")
     : doc(db, "users", user?.uid, "app_settings", "global");
+
+  // --- RECEIPT CONFIGURATION ACTIONS ---
+  const handleUpdateReceiptConfig = async (newConfig) => {
+    const updated = { ...DEFAULT_RECEIPT_CONFIG, ...newConfig };
+    setReceiptConfig(updated);
+    localStorage.setItem("elypos_receipt_config", JSON.stringify(updated));
+    if (!isDemoMode && user) {
+      try {
+        await setDoc(settDoc(), { receipt_config: updated }, { merge: true });
+      } catch (err) {
+        console.error("Error saving receipt config to Firestore:", err);
+      }
+    }
+    showToast("Receipt Template Saved!");
+  };
 
   // --- INVENTORY ACTIONS ---
   const addFruit = async (e) => {
@@ -769,6 +799,8 @@ function App() {
                       setCompletedOrders([]);
                       setStoreName("My Store");
                       localStorage.removeItem("elypos_store_name");
+                      setReceiptConfig(DEFAULT_RECEIPT_CONFIG);
+                      localStorage.removeItem("elypos_receipt_config");
                       setView("dashboard");
                       setScreen("landing");
                       window.location.hash = "#landing";
@@ -1037,7 +1069,19 @@ function App() {
               <div key={o.id} className="history-card" id={`receipt-${o.id}`}>
                  <div className="receipt-brand-header">
                     <h3>{storeName.toUpperCase()}</h3>
-                    <p>Point of Sale Terminal</p>
+                    <p>{receiptConfig?.subtitle || "Official Sales Receipt"}</p>
+                    {receiptConfig?.tagline && (
+                      <p className="receipt-tagline">{receiptConfig.tagline}</p>
+                    )}
+                    {receiptConfig?.address && (
+                      <p className="receipt-contact-info">{receiptConfig.address}</p>
+                    )}
+                    {receiptConfig?.phone && (
+                      <p className="receipt-contact-info">Tel: {receiptConfig.phone}</p>
+                    )}
+                    {receiptConfig?.show_receipt_no && (
+                      <div className="receipt-order-no">Receipt #{o.id ? o.id.slice(-6).toUpperCase() : '000000'}</div>
+                    )}
                  </div>
                 <div className="receipt-divider"></div>
                 <div className="receipt-body">
@@ -1061,7 +1105,12 @@ function App() {
                   </div>
                 </div>
                 <div className="receipt-divider"></div>
-                <div className="receipt-footer"><p>Thank you for shopping at {storeName}!</p></div>
+                <div className="receipt-footer">
+                  <p>{formatReceiptText(receiptConfig?.footer_line1 || "Thank you for shopping at {store}!", storeName)}</p>
+                  {receiptConfig?.footer_line2 && (
+                    <p>{formatReceiptText(receiptConfig.footer_line2, storeName)}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -1130,6 +1179,8 @@ function App() {
                 await setDoc(settDoc(), { store_name: newName }, { merge: true });
               }
             }}
+            receiptConfig={receiptConfig}
+            onUpdateReceiptConfig={handleUpdateReceiptConfig}
             isDemoMode={isDemoMode}
             user={user}
             onRerunWizard={() => setShowSetupWizard(true)}
@@ -1141,6 +1192,8 @@ function App() {
               setCompletedOrders([]);
               setStoreName("My Store");
               localStorage.removeItem("elypos_store_name");
+              setReceiptConfig(DEFAULT_RECEIPT_CONFIG);
+              localStorage.removeItem("elypos_receipt_config");
               setView("dashboard");
               setScreen("landing");
               window.location.hash = "#landing";
@@ -1154,7 +1207,9 @@ function App() {
           <div className="bill-header">
             <div className="order-tag">Checkout</div>
             <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
-            <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
+            {receiptConfig?.show_address_field !== false && (
+              <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
+            )}
           </div>
           <div className="bill-items">
             {cart.map(item => (
@@ -1190,7 +1245,19 @@ function App() {
             <div id={`instant-receipt-${completedReceiptModal.id}`} className="instant-receipt-paper">
               <div className="receipt-brand-header">
                 <h3>{storeName.toUpperCase()}</h3>
-                <p>Official Sales Receipt</p>
+                <p>{receiptConfig?.subtitle || "Official Sales Receipt"}</p>
+                {receiptConfig?.tagline && (
+                  <p className="receipt-tagline">{receiptConfig.tagline}</p>
+                )}
+                {receiptConfig?.address && (
+                  <p className="receipt-contact-info">{receiptConfig.address}</p>
+                )}
+                {receiptConfig?.phone && (
+                  <p className="receipt-contact-info">Tel: {receiptConfig.phone}</p>
+                )}
+                {receiptConfig?.show_receipt_no && (
+                  <div className="receipt-order-no">Receipt #{completedReceiptModal.id ? completedReceiptModal.id.slice(-6).toUpperCase() : '000000'}</div>
+                )}
                 <div className="receipt-meta-line">
                   <span>{completedReceiptModal.display_date} · {completedReceiptModal.time}</span>
                   <span>{completedReceiptModal.customer_name}</span>
@@ -1214,7 +1281,10 @@ function App() {
                 <span className="receipt-popup-total-value">₱{completedReceiptModal.total.toFixed(2)}</span>
               </div>
               <div className="receipt-popup-footer">
-                <p>Thank you for shopping at {storeName}!</p>
+                <p>{formatReceiptText(receiptConfig?.footer_line1 || "Thank you for shopping at {store}!", storeName)}</p>
+                {receiptConfig?.footer_line2 && (
+                  <p>{formatReceiptText(receiptConfig.footer_line2, storeName)}</p>
+                )}
               </div>
             </div>
 
