@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight } from "@phosphor-icons/react";
 import "./SetupWizard.css";
 
 const STORE_TYPES = [
@@ -157,7 +157,7 @@ export default function SetupWizard({ isOpen, onComplete, onSkip }) {
                     >
                       {isSelected && (
                         <div className="type-card-badge">
-                          <CheckCircle2 size={18} />
+                          <CheckCircle size={18} weight="fill" />
                         </div>
                       )}
                       <span className="type-card-icon">{st.icon}</span>

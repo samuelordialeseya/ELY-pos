@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
-import { db } from './firebaseClient';
+import { db, auth } from './firebaseClient';
 import { 
   collection, 
   doc, 
@@ -18,26 +18,36 @@ import "./App.css";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { 
-  LayoutDashboard, 
+  SquaresFour, 
   ShoppingCart, 
   Package, 
-  ClipboardList, 
+  ClipboardText, 
   Truck, 
-  RotateCw, 
+  ArrowClockwise, 
   Coins, 
   Receipt, 
-  TrendingUp, 
+  TrendUp, 
   Trophy, 
   Clock, 
   X, 
-  Sparkles, 
+  Sparkle, 
   Check, 
   Camera, 
-  Trash2, 
-  CheckCircle2, 
-  LogOut,
-  Settings
-} from "lucide-react";
+  Trash, 
+  CheckCircle, 
+  SignOut, 
+  Gear, 
+  Plus, 
+  Minus,
+  Backspace,
+  Question,
+  MagnifyingGlass, 
+  Calendar, 
+  ArrowUpRight, 
+  Basket, 
+  CaretRight,
+  ArrowCounterClockwise
+} from "@phosphor-icons/react";
 
 import { useAuth } from "./context/AuthContext";
 import LandingPage from "./components/LandingPage";
@@ -53,6 +63,13 @@ const generateId = () => {
   return Math.random().toString(36).substring(2, 15);
 };
 
+const formatPeso = (amount) => {
+  return "₱" + Number(amount || 0).toLocaleString("en-PH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
 
 function App() {
   const { 
@@ -66,29 +83,37 @@ function App() {
 
   // Screen routing state: 'landing' | 'auth' | 'app'
   const [screen, setScreen] = useState(() => {
+    const hasAuth = !!(auth.currentUser || localStorage.getItem("elypos_is_demo") === "true");
     if (window.location.hash === "#app") {
-      if (localStorage.getItem("elypos_is_demo") === "true") return "app";
+      if (hasAuth) return "app";
       return "landing";
     }
-    if (window.location.hash === "#auth" || window.location.hash === "#login") return "auth";
+    if (window.location.hash === "#auth" || window.location.hash === "#login") {
+      if (hasAuth) return "app";
+      return "auth";
+    }
     return "landing";
   });
-
-
 
   // Sync hash changes
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
+      const isAuthenticated = !!(user || auth.currentUser || isDemoMode);
       if (hash === "#app") {
-        if (user || isDemoMode) {
+        if (isAuthenticated) {
           setScreen("app");
         } else {
           setScreen("landing");
           window.location.hash = "#landing";
         }
       } else if (hash === "#auth" || hash === "#login") {
-        setScreen("auth");
+        if (isAuthenticated) {
+          setScreen("app");
+          window.location.hash = "#app";
+        } else {
+          setScreen("auth");
+        }
       } else if (hash === "#landing" || hash === "") {
         setScreen("landing");
       }
@@ -99,15 +124,17 @@ function App() {
 
   // Auth route guard: protect #app from unauthenticated visits
   useEffect(() => {
-    if (!authLoading && screen === "app" && !user && !isDemoMode) {
+    const isAuthenticated = !!(user || auth.currentUser || isDemoMode);
+    if (!authLoading && screen === "app" && !isAuthenticated) {
       setScreen("landing");
       window.location.hash = "#landing";
     }
   }, [authLoading, screen, user, isDemoMode]);
 
-  // Auto-forward authenticated users to #app unless they explicitly opened #landing
+  // Auto-forward authenticated users to #app when logged in from auth screen or landing
   useEffect(() => {
-    if (!authLoading && user && screen === "landing" && window.location.hash !== "#landing") {
+    const isAuthenticated = !!(user || auth.currentUser);
+    if (!authLoading && isAuthenticated && (screen === "auth" || (screen === "landing" && window.location.hash !== "#landing"))) {
       setScreen("app");
       window.location.hash = "#app";
     }
@@ -153,6 +180,11 @@ function App() {
   const [dashboardCustomDate, setDashboardCustomDate] = useState(new Date().toISOString().split('T')[0]);
   const [toast, setToast] = useState("");
   const [weights, setWeights] = useState({});
+  const [weighInProduct, setWeighInProduct] = useState(null);
+  const [modalQtyStr, setModalQtyStr] = useState("1");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [undoBanner, setUndoBanner] = useState(null);
+  const undoTimerRef = useRef(null);
 
   // --- STORE BRANDING & STORY STATES ---
   const [storeName, setStoreName] = useState(() => {
@@ -185,6 +217,13 @@ function App() {
       }
     }
   }, [user, isDemoMode]);
+
+  // Clean up checkout undo timer on unmount
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, []);
 
   // --- 1. INITIAL DATA LOADING ---
   useEffect(() => {
@@ -325,6 +364,9 @@ function App() {
   };
 
   const deleteFruit = async (id) => {
+    const itemToDelete = fruits.find(f => f.id === id);
+    if (!window.confirm(`Are you sure you want to remove "${itemToDelete?.name || 'this item'}" from inventory?`)) return;
+
     if (isDemoMode) {
       setFruits(prev => prev.filter(f => f.id !== id));
       showToast("Removed from Demo");
@@ -360,27 +402,224 @@ function App() {
     }
   };
 
+  // --- PRODUCE CATEGORY THEME & SCANNING HELPER ---
+  const getCategoryTheme = (category = "", name = "") => {
+    const cat = (category || "").toLowerCase();
+    const n = (name || "").toLowerCase();
+
+    // Roots, Tubers, Alliums, Spices (Garlic, Onion, Potatoes, Carrots, Ginger)
+    if (
+      cat.includes("root") || cat.includes("tuber") || cat.includes("spice") ||
+      n.includes("garlic") || n.includes("bawang") || n.includes("onion") ||
+      n.includes("sibuyas") || n.includes("potato") || n.includes("patatas") ||
+      n.includes("ginger") || n.includes("luya") || n.includes("carrot")
+    ) {
+      return {
+        chipClass: "cat-chip-roots",
+        cardClass: "card-cat-roots",
+        dotColor: "#EA580C",
+        label: "Roots & Spices"
+      };
+    }
+
+    // Fresh Fruits
+    if (
+      cat.includes("fruit") || n.includes("banana") || n.includes("apple") || 
+      n.includes("mango") || n.includes("orange") || n.includes("watermelon") || 
+      n.includes("papaya") || n.includes("dragonfruit") || n.includes("lemon") || 
+      n.includes("calamansi") || n.includes("avocado")
+    ) {
+      return {
+        chipClass: "cat-chip-fruits",
+        cardClass: "card-cat-fruits",
+        dotColor: "#F59E0B",
+        label: "Fruits"
+      };
+    }
+
+    // Vegetables & Leafy Greens
+    if (
+      cat.includes("veg") || cat.includes("green") || cat.includes("leaf") || 
+      n.includes("ampalaya") || n.includes("beans") || n.includes("kangkong") || 
+      n.includes("pechay") || n.includes("broccoli") || n.includes("cabbage") || 
+      n.includes("repolyo") || n.includes("talong") || n.includes("kamatis") || 
+      n.includes("tomato") || n.includes("sili")
+    ) {
+      return {
+        chipClass: "cat-chip-vegetables",
+        cardClass: "card-cat-vegetables",
+        dotColor: "#10B981",
+        label: "Vegetables"
+      };
+    }
+
+    return {
+      chipClass: "cat-chip-general",
+      cardClass: "card-cat-general",
+      dotColor: "#00A3E0",
+      label: category || "Produce"
+    };
+  };
+
+  // --- TOUCH-FIRST WEIGH-IN & STEPPER HELPERS ---
+  const getProductQty = (product) => {
+    if (weights[product.id] !== undefined && weights[product.id] !== "") {
+      const parsed = parseFloat(weights[product.id]);
+      if (!isNaN(parsed) && parsed >= 0) return parsed;
+    }
+    return 0;
+  };
+
+  const handleCardStep = (product, delta) => {
+    const isKg = (product.unit || '').toLowerCase().includes('kg');
+    const step = isKg ? 0.25 : 1;
+    const current = getProductQty(product);
+    let next;
+    if (current === 0 && delta > 0) {
+      next = isKg ? 1.0 : 1;
+    } else {
+      next = Math.max(0, Math.round((current + delta * step) * 1000) / 1000);
+    }
+    setWeights(prev => ({ ...prev, [product.id]: next }));
+  };
+
+  const openWeighInModal = (product) => {
+    setWeighInProduct(product);
+    const curr = getProductQty(product);
+    setModalQtyStr(curr > 0 ? String(curr) : "");
+  };
+
+  const closeWeighInModal = () => {
+    setWeighInProduct(null);
+  };
+
+  const handleModalNumpad = (val) => {
+    if (val === 'backspace') {
+      setModalQtyStr(prev => (prev.length > 1 ? prev.slice(0, -1) : ''));
+    } else if (val === 'clear') {
+      setModalQtyStr('');
+    } else if (val === '.') {
+      setModalQtyStr(prev => {
+        if (!prev) return '0.';
+        if (prev.includes('.')) return prev;
+        return prev + '.';
+      });
+    } else {
+      setModalQtyStr(prev => {
+        if (prev === '0') return val === '0' ? '0' : val;
+        const parts = prev.split('.');
+        // Allow up to 3 decimal places for high-precision scales (e.g. 0.000 / 0.125 kg)
+        if (parts.length === 2 && parts[1].length >= 3) return prev;
+        if (prev.replace('.', '').length >= 7) return prev;
+        return prev + val;
+      });
+    }
+  };
+
+  const handleModalPreset = (presetVal) => {
+    setModalQtyStr(String(presetVal));
+  };
+
+  const handleConfirmWeighIn = () => {
+    if (!weighInProduct) return;
+    const parsed = parseFloat(modalQtyStr);
+    if (!parsed || parsed <= 0) {
+      showToast("Please enter a valid quantity or weight");
+      return;
+    }
+    addToCart(weighInProduct, parsed);
+    closeWeighInModal();
+  };
+
   // --- POS / CHECKOUT ACTIONS ---
-  const addToCart = (product) => {
-    const qty = parseFloat(weights[product.id]);
-    if (!qty || qty <= 0) return showToast("Enter weight/qty");
+  const addToCart = (product, customQty = null) => {
+    const rawVal = customQty !== null ? customQty : weights[product.id];
+    const isUnitItem = ['pc', 'pcs', 'pack', 'packs', 'tali', 'bundle', 'piece', 'pieces'].includes((product.unit || '').toLowerCase().trim());
+    const isKgItem = (product.unit || '').toLowerCase().includes('kg');
+    const qty = parseFloat(rawVal) || (customQty === null && isUnitItem ? 1 : 0);
     
+    if (!qty || qty <= 0) return showToast("Enter weight or quantity");
+    
+    const roundedQty = Math.round(qty * 1000) / 1000;
     const item = { 
       cartId: generateId(), 
       name: product.name, 
       price: product.price, 
-      quantity: qty, 
+      quantity: roundedQty, 
       unit: product.unit, 
-      subtotal: product.price * qty 
+      subtotal: Math.round(product.price * roundedQty * 100) / 100
     };
 
-    setCart([...cart, item]);
-    showToast("Added to Cart");
-    setWeights({ ...weights, [product.id]: "" });
+    setCart(prev => [...prev, item]);
+    // Reset product weight to 0 on the card so it never stays stuck on high volumes
+    setWeights(prev => ({ ...prev, [product.id]: 0 }));
+    showToast(`Added ${roundedQty} ${product.unit} ${product.name}`);
+  };
+
+  const handleCardAdd = (product) => {
+    const qty = getProductQty(product);
+    const isKg = (product.unit || '').toLowerCase().includes('kg');
+    if (qty > 0) {
+      addToCart(product, qty);
+    } else if (isKg) {
+      openWeighInModal(product);
+    } else {
+      addToCart(product, 1);
+    }
+  };
+
+  const handleClearCart = () => {
+    if (cart.length === 0) return;
+    if (!window.confirm("Are you sure you want to clear all items in the current cart?")) return;
+    setCart([]);
+    setWeights({});
+    showToast("Cart cleared");
+  };
+
+  const handleUndoOrder = async (orderId) => {
+    if (!orderId) return;
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    const snapshot = undoBanner;
+    setUndoBanner(null);
+    if (completedReceiptModal && completedReceiptModal.id === orderId) {
+      setCompletedReceiptModal(null);
+    }
+
+    try {
+      if (isDemoMode) {
+        setCompletedOrders(prev => prev.filter(o => o.id !== orderId));
+        setCustomerCount(prev => Math.max(1, prev - 1));
+      } else {
+        await deleteDoc(doc(db, ordCol(), orderId));
+        try {
+          await setDoc(settDoc(), { customer_count: increment(-1) }, { merge: true });
+        } catch (_) {}
+      }
+
+      if (snapshot && snapshot.items) {
+        setCart(snapshot.items);
+        setCustomer(snapshot.customer || "");
+        setAddress(snapshot.address || "");
+        setWeights(snapshot.weights || {});
+      }
+      showToast("Order Undone · Cart Restored");
+    } catch (err) {
+      showToast("Failed to undo order: " + err.message);
+    }
   };
 
   const completeOrder = async () => {
+    if (isCheckingOut) return;
     if (cart.length === 0) return showToast("Cart is empty!");
+    
+    setIsCheckingOut(true);
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
     
     const now = new Date();
     const newOrder = { 
@@ -396,24 +635,49 @@ function App() {
         order_type: 'pos'
     };
 
-    if (isDemoMode) {
-      const demoOrd = { id: `demo-order-${Date.now()}`, ...newOrder };
-      setCompletedOrders(prev => [demoOrd, ...prev]);
-      setCustomerCount(prev => prev + 1);
-      setCart([]); setCustomer(""); setAddress("");
-      setCompletedReceiptModal(demoOrd);
-      showToast("Demo Transaction Saved!");
-      return;
-    }
+    const cartSnapshot = [...cart];
+    const customerSnapshot = customer;
+    const addressSnapshot = address;
+    const weightsSnapshot = { ...weights };
 
     try {
-      const docRef = await addDoc(collection(db, ordCol()), newOrder);
-      await setDoc(settDoc(), { customer_count: increment(1) }, { merge: true });
-      setCart([]); setCustomer(""); setAddress("");
-      setCompletedReceiptModal({ id: docRef.id, ...newOrder });
+      let createdId = "";
+      if (isDemoMode) {
+        createdId = `demo-order-${Date.now()}`;
+        const demoOrd = { id: createdId, ...newOrder };
+        setCompletedOrders(prev => [demoOrd, ...prev]);
+        setCustomerCount(prev => prev + 1);
+        setCart([]); setCustomer(""); setAddress(""); setWeights({});
+        setCompletedReceiptModal(demoOrd);
+      } else {
+        const docRef = await addDoc(collection(db, ordCol()), newOrder);
+        createdId = docRef.id;
+        await setDoc(settDoc(), { customer_count: increment(1) }, { merge: true });
+        setCart([]); setCustomer(""); setAddress(""); setWeights({});
+        setCompletedReceiptModal({ id: createdId, ...newOrder });
+      }
+
+      // Activate 5-second non-blocking rollback undo window
+      const undoData = {
+        id: createdId,
+        customerName: newOrder.customer_name,
+        total: newOrder.total,
+        items: cartSnapshot,
+        customer: customerSnapshot,
+        address: addressSnapshot,
+        weights: weightsSnapshot
+      };
+      setUndoBanner(undoData);
+      undoTimerRef.current = setTimeout(() => {
+        setUndoBanner(null);
+        undoTimerRef.current = null;
+      }, 5500);
+
       showToast("Transaction Saved!");
     } catch (orderError) {
       showToast("Error: " + orderError.message);
+    } finally {
+      setIsCheckingOut(false);
     }
   };
 
@@ -516,20 +780,28 @@ function App() {
   const dashRevenue = dashOrders.reduce((sum, o) => sum + (o.total || 0), 0);
   const dashTxCount = dashOrders.length;
   const dashAvg = dashTxCount > 0 ? dashRevenue / dashTxCount : 0;
-  const dashItemsSold = dashOrders.reduce((s, o) => s + (o.items || []).length, 0);
+  const dashItemsSold = dashOrders.reduce((s, o) => s + (o.items || []).reduce((acc, it) => acc + (Number(it.quantity) || 1), 0), 0);
 
   const dashItemMap = {};
   dashOrders.forEach(o => {
     (o.items || []).forEach(it => {
       const key = it.name || 'Unknown';
-      if (!dashItemMap[key]) dashItemMap[key] = { name: key, qty: 0, revenue: 0 };
-      dashItemMap[key].qty += (it.quantity || 0);
-      dashItemMap[key].revenue += (it.subtotal || 0);
+      if (!dashItemMap[key]) dashItemMap[key] = { name: key, qty: 0, revenue: 0, unit: it.unit || 'units' };
+      dashItemMap[key].qty += (Number(it.quantity) || 0);
+      dashItemMap[key].revenue += (Number(it.subtotal) || 0);
+      if (it.unit) dashItemMap[key].unit = it.unit;
     });
   });
   const dashTopSellers = Object.values(dashItemMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-  const dashRecentOrders = dashOrders.slice(0, 5);
-  const dashRangeLabel = dashboardRange === 'today' ? 'Today' : dashboardRange === 'week' ? 'This Week' : dashboardRange === 'month' ? 'This Month' : dashboardCustomDate;
+  const dashMaxSellerRev = dashTopSellers.length > 0 ? dashTopSellers[0].revenue : 1;
+
+  const sortedDashOrders = [...dashOrders].sort((a, b) => {
+    const tA = new Date(a.created_at || a.raw_date || 0).getTime();
+    const tB = new Date(b.created_at || b.raw_date || 0).getTime();
+    return tB - tA;
+  });
+  const dashRecentOrders = sortedDashOrders.slice(0, 5);
+  const dashRangeLabel = dashboardRange === 'today' ? 'Today' : dashboardRange === 'week' ? 'This Week (7 Days)' : dashboardRange === 'month' ? 'This Month' : (dashboardCustomDate || 'Selected Date');
 
   // --- HISTORY COMPUTATIONS ---
   const historyFilteredOrders = completedOrders.filter(o => {
@@ -684,8 +956,13 @@ function App() {
     return (
       <LandingPage 
         onOpenAuth={() => {
-          setScreen("auth");
-          window.location.hash = "#auth";
+          if (user || auth.currentUser || isDemoMode) {
+            setScreen("app");
+            window.location.hash = "#app";
+          } else {
+            setScreen("auth");
+            window.location.hash = "#auth";
+          }
         }}
         onLaunchDemo={() => {
           enterDemoMode();
@@ -719,7 +996,7 @@ function App() {
             if (authedUser?.uid) localStorage.removeItem(`elypos_setup_done_${authedUser.uid}`);
             setShowSetupWizard(true);
           } else {
-            const uid = authedUser?.uid || user?.uid;
+            const uid = authedUser?.uid || user?.uid || auth.currentUser?.uid;
             const userSetupDone = uid ? localStorage.getItem(`elypos_setup_done_${uid}`) : null;
             const globalSetupDone = localStorage.getItem("elypos_setup_done");
             if (userSetupDone !== "true" && globalSetupDone !== "true") {
@@ -739,36 +1016,102 @@ function App() {
   return (
     <div className={`pos-layout${view !== 'pos' ? ' no-cart' : ''}`}>
       <aside className="sidebar">
-        <div className="brand" title="Active Store">
-          <img src="/ely-logo.png" alt="ELY" className="brand-logo-img" />
+        <div className="brand" title={`Active Store: ${storeName}`}>
+          <div className="brand-logo-wrap">
+            <img src="/ely-logo.png" alt="ELY" className="brand-logo-img" />
+            <span className="brand-active-dot" title="Terminal Online" />
+          </div>
           <h2 className="brand-text">{storeName}</h2>
         </div>
-        <nav className="nav-links">
-          <div className={`nav-item ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>
-            <span className="nav-icon nav-icon-dashboard"><LayoutDashboard size={18} /></span>
+        <nav className="nav-links" aria-label="Terminal Navigation">
+          <button
+            type="button"
+            className={`nav-item ${view === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setView('dashboard')}
+            aria-label="Dashboard"
+            aria-current={view === 'dashboard' ? 'page' : undefined}
+            title="Dashboard Overview"
+          >
+            <span className="nav-icon nav-icon-dashboard"><SquaresFour size={18} weight="bold" /></span>
             <span className="nav-text">Dashboard</span>
-          </div>
-          <div className={`nav-item ${view === 'pos' ? 'active' : ''}`} onClick={() => setView('pos')}>
-            <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} /></span>
+            <span className="nav-label-ipad">Dash</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${view === 'pos' ? 'active' : ''}`}
+            onClick={() => setView('pos')}
+            aria-label="Point of Sale Register"
+            aria-current={view === 'pos' ? 'page' : undefined}
+            title="POS Cashier Register"
+          >
+            <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} weight="bold" /></span>
             <span className="nav-text">POS</span>
-          </div>
-          <div className={`nav-item ${view === 'inventory' ? 'active' : ''}`} onClick={() => setView('inventory')}>
-            <span className="nav-icon nav-icon-inventory"><Package size={18} /></span>
+            <span className="nav-label-ipad">POS</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${view === 'inventory' ? 'active' : ''}`}
+            onClick={() => setView('inventory')}
+            aria-label="Product Catalog and Inventory"
+            aria-current={view === 'inventory' ? 'page' : undefined}
+            title="Inventory Catalog"
+          >
+            <span className="nav-icon nav-icon-inventory"><Package size={18} weight="bold" /></span>
             <span className="nav-text">Inventory</span>
-          </div>
-          <div className={`nav-item ${view === 'orders' ? 'active' : ''}`} onClick={() => setView('orders')}>
-            <span className="nav-icon nav-icon-orders"><ClipboardList size={18} /></span>
+            <span className="nav-label-ipad">Catalog</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${view === 'orders' ? 'active' : ''}`}
+            onClick={() => setView('orders')}
+            aria-label="Transaction and Order History"
+            aria-current={view === 'orders' ? 'page' : undefined}
+            title="Transaction History"
+          >
+            <span className="nav-icon nav-icon-orders"><ClipboardText size={18} weight="bold" /></span>
             <span className="nav-text">History</span>
-          </div>
-          <div className={`nav-item ${view === 'delivery' ? 'active' : ''}`} onClick={() => setView('delivery')}>
-            <span className="nav-icon nav-icon-delivery"><Truck size={18} /></span>
+            <span className="nav-label-ipad">History</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${view === 'delivery' ? 'active' : ''}`}
+            onClick={() => setView('delivery')}
+            aria-label="Delivery Manifests"
+            aria-current={view === 'delivery' ? 'page' : undefined}
+            title="Delivery Manifests"
+          >
+            <span className="nav-icon nav-icon-delivery"><Truck size={18} weight="bold" /></span>
             <span className="nav-text">Delivery</span>
-          </div>
-          <div className={`nav-item ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>
-            <span className="nav-icon nav-icon-settings"><Settings size={18} /></span>
+            <span className="nav-label-ipad">Delivery</span>
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${view === 'settings' ? 'active' : ''}`}
+            onClick={() => setView('settings')}
+            aria-label="Store Settings and Customization"
+            aria-current={view === 'settings' ? 'page' : undefined}
+            title="Store Settings"
+          >
+            <span className="nav-icon nav-icon-settings"><Gear size={18} weight="bold" /></span>
             <span className="nav-text">Settings</span>
-          </div>
+            <span className="nav-label-ipad">Settings</span>
+          </button>
         </nav>
+        <div className="sidebar-footer">
+          <div className="sidebar-status-pill" title="Store Terminal Online">
+            <span className="status-indicator-dot" />
+            <span className="sidebar-status-text">Online</span>
+          </div>
+          <button
+            type="button"
+            className="sidebar-help-btn"
+            onClick={() => startTour(view)}
+            title="Interactive Tour & Guide"
+            aria-label="Interactive Tour & Guide"
+          >
+            <Question size={16} weight="bold" />
+          </button>
+        </div>
       </aside>
 
       <main className="main-viewport">
@@ -789,7 +1132,7 @@ function App() {
             <div className="header-right-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {isDemoMode && (
                 <div className="demo-indicator-pill">
-                  <Sparkles size={13} className="demo-pill-sparkle" />
+                  <Sparkle size={13} weight="fill" className="demo-pill-sparkle" />
                   <span>Demo Sandbox</span>
                   <button
                     className="btn-exit-demo-pill"
@@ -820,10 +1163,40 @@ function App() {
 
           {view === 'pos' && (
             <div className="pos-search-wrapper">
-              <input type="text" className="top-search" placeholder="Search products..." value={posSearchTerm} onChange={e => setPosSearchTerm(e.target.value)} />
+              <div className="pos-search-bar-row">
+                <div className="pos-search-box">
+                  <MagnifyingGlass size={18} className="pos-search-icon" />
+                  <input
+                    type="text"
+                    className="pos-search-input"
+                    placeholder="Search products by name..."
+                    value={posSearchTerm}
+                    onChange={e => setPosSearchTerm(e.target.value)}
+                  />
+                  {posSearchTerm && (
+                    <button
+                      type="button"
+                      className="pos-search-clear"
+                      onClick={() => setPosSearchTerm('')}
+                      title="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <div className="pos-catalog-count">
+                  <span><strong>{fruits.length}</strong> items</span>
+                </div>
+              </div>
               <div className="category-filter-bar">
-                {['All', ...new Set(fruits.map(f => f.category))].map(cat => (
-                  <button key={cat} className={`cat-filter-btn ${posSelectedCategory === cat ? 'active' : ''}`} onClick={() => setPosSelectedCategory(cat)}>{cat}</button>
+                {['All', ...new Set(fruits.map(f => f.category).filter(Boolean))].map(cat => (
+                  <button
+                    key={cat}
+                    className={`cat-filter-btn ${posSelectedCategory === cat ? 'active' : ''}`}
+                    onClick={() => setPosSelectedCategory(cat)}
+                  >
+                    {cat}
+                  </button>
                 ))}
               </div>
             </div>
@@ -841,124 +1214,459 @@ function App() {
                   Go to Inventory
                 </button>
               </div>
-            ) : (
-              fruits.filter(f => (posSelectedCategory === "All" || f.category === posSelectedCategory) && f.name.toLowerCase().includes(posSearchTerm.toLowerCase())).map(f => (
-                <div key={f.id} className="food-card">
-                  <div className="card-cat">{f.category}</div>
-                  <div className="food-img-circle"></div>
-                  <h4>{f.name}</h4>
-                  <p className="food-price">₱{f.price.toFixed(2)} / {f.unit}</p>
-                  <div className="weight-selector">
-                    <input type="number" step="any" placeholder={f.unit} value={weights[f.id] || ""} onChange={e => setWeights({...weights, [f.id]: e.target.value})} />
-                    <button className="add-btn" onClick={() => addToCart(f)}>Add</button>
+            ) : (() => {
+              const filteredPosFruits = fruits
+                .filter(f => (posSelectedCategory === "All" || f.category === posSelectedCategory))
+                .filter(f => f.name.toLowerCase().includes(posSearchTerm.toLowerCase()));
+
+              if (filteredPosFruits.length === 0) {
+                return (
+                  <div className="pos-empty-filter-state">
+                    <MagnifyingGlass size={38} className="empty-search-icon" />
+                    <h3>No products found</h3>
+                    <p>No items match "{posSearchTerm}" in {posSelectedCategory}.</p>
+                    <button
+                      className="btn-clear-pos-filters"
+                      onClick={() => { setPosSearchTerm(''); setPosSelectedCategory('All'); }}
+                    >
+                      Clear Search & Filters
+                    </button>
+                  </div>
+                );
+              }
+
+              return filteredPosFruits.map(f => {
+                const catTheme = getCategoryTheme(f.category, f.name);
+                const cartQty = cart
+                  .filter(c => c.name === f.name)
+                  .reduce((acc, c) => acc + c.quantity, 0);
+
+                return (
+                  <div
+                    key={f.id}
+                    className="food-card"
+                    onClick={() => handleCardAdd(f)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCardAdd(f);
+                      }
+                    }}
+                    aria-label={`${f.name}, ₱${f.price.toFixed(2)} per ${f.unit}. Tap to add.`}
+                  >
+                    <div className="card-top-row">
+                      <span className={`card-cat ${catTheme.chipClass}`}>
+                        {catTheme.label}
+                      </span>
+                      {cartQty > 0 && (
+                        <span className="card-cart-badge" title={`${cartQty} ${f.unit} in current cart`}>
+                          <ShoppingCart size={11} weight="bold" />
+                          <span>{cartQty} {f.unit}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="card-body">
+                      <h4 className="food-name" title={f.name}>{f.name}</h4>
+                      <p className="food-price">
+                        <span className="price-amount">₱{f.price.toFixed(2)}</span>
+                        <span className="price-unit"> / {f.unit}</span>
+                      </p>
+                    </div>
+
+                    <div className="card-action" onClick={e => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="btn-card-add"
+                        onClick={() => handleCardAdd(f)}
+                        title={`Add ${f.name} to cart`}
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        )}
+
+        {/* --- TOUCH WEIGH-IN & NUMPAD MODAL --- */}
+        {weighInProduct && (
+          <div className="weighin-modal-overlay" onClick={closeWeighInModal}>
+            <div className="weighin-modal-content" onClick={e => e.stopPropagation()}>
+              <div className="weighin-header">
+                <div className="weighin-title-group">
+                  <span className="weighin-cat-badge">{weighInProduct.category || "Produce"}</span>
+                  <h3 className="weighin-prod-name">{weighInProduct.name}</h3>
+                  <p className="weighin-rate">₱{weighInProduct.price.toFixed(2)} per {weighInProduct.unit}</p>
+                </div>
+                <button 
+                  type="button" 
+                  className="weighin-close-btn" 
+                  onClick={closeWeighInModal}
+                  aria-label="Close weigh-in dialog"
+                >
+                  <X size={20} weight="bold" />
+                </button>
+              </div>
+
+              <div className="weighin-display-card">
+                <div className="weighin-display-left">
+                  <span className="weighin-display-label">Scale Quantity</span>
+                  <div className="weighin-display-value">
+                    <span className="weighin-num">
+                      {modalQtyStr || ((weighInProduct.unit || '').toLowerCase().includes('kg') ? "0.000" : "0")}
+                    </span>
+                    <span className="weighin-unit">{weighInProduct.unit}</span>
                   </div>
                 </div>
-              ))
-            )}
+                <div className="weighin-display-right">
+                  <span className="weighin-display-label">Item Total</span>
+                  <span className="weighin-subtotal">
+                    ₱{((parseFloat(modalQtyStr) || 0) * weighInProduct.price).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="weighin-presets-section">
+                <span className="weighin-presets-label">Quick Presets</span>
+                <div className="weighin-presets-grid">
+                  {(weighInProduct.unit || '').toLowerCase().includes('kg') ? (
+                    [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        className={`weighin-preset-chip ${parseFloat(modalQtyStr) === val ? 'active' : ''}`}
+                        onClick={() => handleModalPreset(val)}
+                      >
+                        {val} kg
+                      </button>
+                    ))
+                  ) : (
+                    [1, 2, 3, 5, 6, 10, 12, 24].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        className={`weighin-preset-chip ${parseFloat(modalQtyStr) === val ? 'active' : ''}`}
+                        onClick={() => handleModalPreset(val)}
+                      >
+                        {val} {weighInProduct.unit}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Touch Numpad (Virtual Keyboard Never Invoked) */}
+              <div className="weighin-numpad-grid">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'].map(digit => (
+                  <button
+                    key={digit}
+                    type="button"
+                    className="weighin-key-btn"
+                    onClick={() => handleModalNumpad(digit)}
+                  >
+                    {digit}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="weighin-key-btn weighin-key-backspace"
+                  onClick={() => handleModalNumpad('backspace')}
+                  aria-label="Backspace"
+                >
+                  <Backspace size={22} weight="bold" />
+                </button>
+              </div>
+
+              <div className="weighin-actions">
+                <button
+                  type="button"
+                  className="weighin-clear-btn"
+                  onClick={() => handleModalNumpad('clear')}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className="weighin-confirm-btn"
+                  onClick={handleConfirmWeighIn}
+                  disabled={!parseFloat(modalQtyStr) || parseFloat(modalQtyStr) <= 0}
+                >
+                  <Check size={18} weight="bold" />
+                  <span>Add to Cart · ₱{((parseFloat(modalQtyStr) || 0) * weighInProduct.price).toFixed(2)}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {view === 'dashboard' && (
           <div className="dashboard-screen">
-            {/* Range Selector */}
+            {/* Range & Action Bar */}
             <div className="dash-range-bar">
-              <div className="dash-range-btns">
-                {['today', 'week', 'month'].map(r => (
-                  <button
-                    key={r}
-                    className={`dash-range-btn ${dashboardRange === r ? 'active' : ''}`}
-                    onClick={() => setDashboardRange(r)}
-                  >
-                    {r === 'today' ? 'Today' : r === 'week' ? 'This Week' : 'This Month'}
-                  </button>
-                ))}
-                <div className="dash-custom-wrap">
-                  <input
-                    type="date"
-                    className={`date-input dash-date-pick ${dashboardRange === 'custom' ? 'active' : ''}`}
-                    value={dashboardCustomDate}
-                    onChange={e => { setDashboardCustomDate(e.target.value); setDashboardRange('custom'); }}
-                  />
+              <div className="dash-range-left">
+                <div className="dash-range-btns" role="tablist" aria-label="Time period">
+                  {[
+                    { id: 'today', label: 'Today' },
+                    { id: 'week', label: 'This Week' },
+                    { id: 'month', label: 'This Month' }
+                  ].map(r => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={dashboardRange === r.id}
+                      className={`dash-range-btn ${dashboardRange === r.id ? 'active' : ''}`}
+                      onClick={() => setDashboardRange(r.id)}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                  <div className="dash-custom-wrap">
+                    <Calendar size={15} className="dash-custom-calendar-icon" />
+                    <input
+                      type="date"
+                      aria-label="Filter by specific date"
+                      className={`date-input dash-date-pick ${dashboardRange === 'custom' ? 'active' : ''}`}
+                      value={dashboardCustomDate}
+                      onChange={e => { setDashboardCustomDate(e.target.value); setDashboardRange('custom'); }}
+                    />
+                  </div>
+                </div>
+                <div className="dash-range-label">
+                  <Calendar size={13} className="dash-range-label-icon" />
+                  <span>Showing: <strong>{dashRangeLabel}</strong></span>
                 </div>
               </div>
-              <div className="dash-range-label">Showing: <strong>{dashRangeLabel}</strong></div>
+
+              <div className="dash-range-right">
+                <button
+                  type="button"
+                  className="dash-quick-sale-btn"
+                  onClick={() => setView('pos')}
+                  title="Open Point of Sale register"
+                >
+                  <ShoppingCart size={15} />
+                  <span>New Sale</span>
+                </button>
+              </div>
             </div>
 
             {/* Metric Cards */}
             <div className="dash-metric-grid">
-              <div className="dash-metric-card dash-revenue">
-                <div className="dash-metric-icon"><Coins size={28} /></div>
-                <div className="dash-metric-body">
+              <div className="dash-metric-card dash-metric-revenue">
+                <div className="dash-metric-card-top">
                   <span className="dash-metric-label">Total Revenue</span>
-                  <span className="dash-metric-value">₱{dashRevenue.toFixed(2)}</span>
+                  <div className="dash-metric-icon-box icon-revenue">
+                    <Coins size={20} />
+                  </div>
+                </div>
+                <div className="dash-metric-card-bottom">
+                  <div className="dash-metric-value">{formatPeso(dashRevenue)}</div>
+                  <div className="dash-metric-hint">
+                    {dashTxCount > 0 
+                      ? `${dashTxCount} completed ${dashTxCount === 1 ? 'sale' : 'sales'}`
+                      : 'No transactions yet'}
+                  </div>
                 </div>
               </div>
-              <div className="dash-metric-card dash-tx">
-                <div className="dash-metric-icon"><Receipt size={28} /></div>
-                <div className="dash-metric-body">
+
+              <div className="dash-metric-card dash-metric-tx">
+                <div className="dash-metric-card-top">
                   <span className="dash-metric-label">Transactions</span>
-                  <span className="dash-metric-value">{dashTxCount}</span>
+                  <div className="dash-metric-icon-box icon-tx">
+                    <Receipt size={20} />
+                  </div>
+                </div>
+                <div className="dash-metric-card-bottom">
+                  <div className="dash-metric-value">{dashTxCount}</div>
+                  <div className="dash-metric-hint">
+                    {dashTxCount > 0
+                      ? `${dashRecentOrders.filter(o => o.order_type === 'delivery').length} delivery · ${dashRecentOrders.filter(o => o.order_type !== 'delivery').length} in-store`
+                      : 'Awaiting register checkouts'}
+                  </div>
                 </div>
               </div>
-              <div className="dash-metric-card dash-avg">
-                <div className="dash-metric-icon"><TrendingUp size={28} /></div>
-                <div className="dash-metric-body">
+
+              <div className="dash-metric-card dash-metric-avg">
+                <div className="dash-metric-card-top">
                   <span className="dash-metric-label">Avg. Order Value</span>
-                  <span className="dash-metric-value">₱{dashAvg.toFixed(2)}</span>
+                  <div className="dash-metric-icon-box icon-avg">
+                    <TrendUp size={20} weight="bold" />
+                  </div>
+                </div>
+                <div className="dash-metric-card-bottom">
+                  <div className="dash-metric-value">{formatPeso(dashAvg)}</div>
+                  <div className="dash-metric-hint">
+                    {dashTxCount > 0 ? 'Per customer ticket' : 'Requires at least 1 order'}
+                  </div>
                 </div>
               </div>
-              <div className="dash-metric-card dash-items">
-                <div className="dash-metric-icon"><Package size={28} /></div>
-                <div className="dash-metric-body">
+
+              <div className="dash-metric-card dash-metric-items">
+                <div className="dash-metric-card-top">
                   <span className="dash-metric-label">Items Sold</span>
-                  <span className="dash-metric-value">{dashItemsSold}</span>
+                  <div className="dash-metric-icon-box icon-items">
+                    <Package size={20} weight="bold" />
+                  </div>
+                </div>
+                <div className="dash-metric-card-bottom">
+                  <div className="dash-metric-value">
+                    {dashItemsSold % 1 === 0 ? dashItemsSold : dashItemsSold.toFixed(1)}
+                  </div>
+                  <div className="dash-metric-hint">
+                    {dashItemsSold > 0 
+                      ? `Units across ${dashOrders.reduce((s, o) => s + (o.items || []).length, 0)} product lines`
+                      : 'No items scanned'}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom Panels */}
             <div className="dash-panels">
+              {/* Top Sellers Panel */}
               <div className="dash-panel">
                 <div className="dash-panel-header">
-                  <h4><span className="panel-header-icon panel-icon-trophy"><Trophy size={16} /></span> Top Sellers</h4>
-                  <span className="dash-panel-sub">by revenue</span>
+                  <div className="dash-panel-title-wrap">
+                    <div className="panel-header-icon-box icon-trophy">
+                      <Trophy size={16} weight="bold" />
+                    </div>
+                    <div>
+                      <h4 className="dash-panel-title">Top Sellers</h4>
+                      <span className="dash-panel-desc">Ranked by gross sales volume</span>
+                    </div>
+                  </div>
+                  <span className="dash-panel-badge">{dashTopSellers.length} items ranked</span>
                 </div>
+
                 {dashTopSellers.length === 0 ? (
-                  <div className="dash-empty">No orders in this period.</div>
+                  <div className="dash-panel-empty">
+                    <Basket size={36} weight="bold" className="dash-empty-icon" />
+                    <h5>No produce sales recorded</h5>
+                    <p>Once orders are rung up at the register, your top performers will appear here automatically.</p>
+                    <button
+                      type="button"
+                      className="dash-empty-btn"
+                      onClick={() => setView('pos')}
+                    >
+                      <ShoppingCart size={14} weight="bold" />
+                      <span>Open POS Register</span>
+                    </button>
+                  </div>
                 ) : (
                   <div className="dash-sellers-list">
-                    {dashTopSellers.map((item, i) => (
-                      <div key={item.name} className="dash-seller-row">
-                        <div className="dash-seller-rank">{i + 1}</div>
-                        <div className="dash-seller-info">
-                          <span className="dash-seller-name">{item.name}</span>
-                          <span className="dash-seller-qty">{item.qty.toFixed(2)} units sold</span>
+                    {dashTopSellers.map((item, i) => {
+                      const sharePct = dashMaxSellerRev > 0 ? Math.round((item.revenue / dashMaxSellerRev) * 100) : 0;
+                      const formattedQty = item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1);
+                      return (
+                        <div key={item.name} className="dash-seller-row">
+                          <div className={`dash-seller-rank rank-${i + 1}`}>
+                            {i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : i + 1}
+                          </div>
+                          <div className="dash-seller-info">
+                            <div className="dash-seller-info-top">
+                              <span className="dash-seller-name" title={item.name}>{item.name}</span>
+                              <span className="dash-seller-rev">{formatPeso(item.revenue)}</span>
+                            </div>
+                            <div className="dash-seller-info-sub">
+                              <span className="dash-seller-qty">{formattedQty} {item.unit || 'units'} sold</span>
+                              <span className="dash-seller-pct">{sharePct}% of top volume</span>
+                            </div>
+                            <div className="dash-seller-bar-track">
+                              <div className="dash-seller-bar-fill" style={{ width: `${Math.max(8, sharePct)}%` }} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="dash-seller-rev">₱{item.revenue.toFixed(2)}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
+              {/* Recent Orders Panel */}
               <div className="dash-panel">
                 <div className="dash-panel-header">
-                  <h4><span className="panel-header-icon panel-icon-recent"><Clock size={16} /></span> Recent Orders</h4>
-                  <span className="dash-panel-sub">last 5</span>
+                  <div className="dash-panel-title-wrap">
+                    <div className="panel-header-icon-box icon-recent">
+                      <Clock size={16} weight="bold" />
+                    </div>
+                    <div>
+                      <h4 className="dash-panel-title">Recent Transactions</h4>
+                      <span className="dash-panel-desc">Latest counter & delivery tickets</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="dash-panel-action-btn"
+                    onClick={() => setView('orders')}
+                    title="View full Order History"
+                  >
+                    <span>View All</span>
+                    <ArrowUpRight size={14} weight="bold" />
+                  </button>
                 </div>
+
                 {dashRecentOrders.length === 0 ? (
-                  <div className="dash-empty">No orders in this period.</div>
+                  <div className="dash-panel-empty">
+                    <Receipt size={36} weight="bold" className="dash-empty-icon" />
+                    <h5>No transactions in this period</h5>
+                    <p>Tickets printed and sales checked out will be logged here in chronological order.</p>
+                    <button
+                      type="button"
+                      className="dash-empty-btn"
+                      onClick={() => setView('pos')}
+                    >
+                      <ShoppingCart size={14} weight="bold" />
+                      <span>Start First Sale</span>
+                    </button>
+                  </div>
                 ) : (
                   <div className="dash-recent-list">
-                    {dashRecentOrders.map(o => (
-                      <div key={o.id} className="dash-recent-row">
-                        <div className="dash-recent-info">
-                          <span className="dash-recent-name">{o.customer_name}</span>
-                          <span className="dash-recent-time">{o.display_date} · {o.time}</span>
+                    {dashRecentOrders.map(o => {
+                      const itemCount = (o.items || []).length;
+                      const isDelivery = o.order_type === 'delivery';
+                      return (
+                        <div 
+                          key={o.id} 
+                          className="dash-recent-row"
+                          onClick={() => setView('orders')}
+                          title="Click to view details in Order History"
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setView('orders'); }}
+                        >
+                          <div className="dash-recent-avatar">
+                            {isDelivery ? <Truck size={16} weight="bold" /> : <Receipt size={16} weight="bold" />}
+                          </div>
+                          <div className="dash-recent-info">
+                            <div className="dash-recent-top-line">
+                              <span className="dash-recent-name">{o.customer_name || 'Walk-in Customer'}</span>
+                              <span className="dash-recent-total">{formatPeso(o.total || 0)}</span>
+                            </div>
+                            <div className="dash-recent-sub-line">
+                              <span className={`dash-recent-type-badge ${isDelivery ? 'badge-delivery' : 'badge-pos'}`}>
+                                {isDelivery ? 'Delivery' : 'POS'}
+                              </span>
+                              <span className="dash-recent-meta">
+                                {itemCount} {itemCount === 1 ? 'item' : 'items'} · {o.display_date || ''} {o.time ? `(${o.time})` : ''}
+                              </span>
+                              <span className="dash-recent-status-pill">
+                                {o.status || 'Completed'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="dash-recent-arrow">
+                            <CaretRight size={15} weight="bold" />
+                          </div>
                         </div>
-                        <div className="dash-recent-total">₱{(o.total || 0).toFixed(2)}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -966,78 +1674,282 @@ function App() {
           </div>
         )}
 
-        {view === 'inventory' && (
-          <div className="inventory-screen">
-            <div className="inv-actions-top" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0', gap: '15px' }}>
-              <div className="pos-search-wrapper" style={{ flex: '1 1 200px', minWidth: 0 }}>
-                <input type="text" className="top-search" placeholder="Search inventory..." value={invSearchTerm} onChange={e => setInvSearchTerm(e.target.value)} />
+        {view === 'inventory' && (() => {
+          const filteredFruits = fruits
+            .filter(f => (invSelectedCategory === "All" || f.category === invSelectedCategory))
+            .filter(f => f.name.toLowerCase().includes(invSearchTerm.toLowerCase()));
+
+          return (
+            <div className="inventory-screen">
+              <div className="inv-top-bar">
+                <div className="inv-search-wrapper">
+                  <div className="inv-search-box">
+                    <MagnifyingGlass size={18} className="inv-search-icon" />
+                    <input
+                      type="text"
+                      className="inv-search-input"
+                      placeholder="Search inventory by product name..."
+                      value={invSearchTerm}
+                      onChange={e => setInvSearchTerm(e.target.value)}
+                    />
+                    {invSearchTerm && (
+                      <button
+                        type="button"
+                        className="inv-search-clear"
+                        onClick={() => setInvSearchTerm('')}
+                        title="Clear search"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="inv-stats-pill">
+                    <span><strong>{fruits.length}</strong> items</span>
+                    <span className="dot-divider">•</span>
+                    <span><strong>{[...new Set(fruits.map(f => f.category).filter(Boolean))].length}</strong> categories</span>
+                  </div>
+                </div>
+
                 <div className="category-filter-bar">
-                  {['All', ...new Set(fruits.map(f => f.category))].map(cat => (
-                    <button key={cat} className={`cat-filter-btn ${invSelectedCategory === cat ? 'active' : ''}`} onClick={() => setInvSelectedCategory(cat)}>{cat}</button>
+                  {['All', ...new Set(fruits.map(f => f.category).filter(Boolean))].map(cat => (
+                    <button
+                      key={cat}
+                      className={`cat-filter-btn ${invSelectedCategory === cat ? 'active' : ''}`}
+                      onClick={() => setInvSelectedCategory(cat)}
+                    >
+                      {cat}
+                    </button>
                   ))}
                 </div>
               </div>
-            </div>
-             <div className="inv-form-card">
-              <form onSubmit={addFruit}>
-                <div className="form-grid">
-                  <input placeholder="Product Name" value={name} onChange={e => setName(e.target.value)} />
-                  <input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-                  <input placeholder="Unit (kg/pc)" value={unit} onChange={e => setUnit(e.target.value)} />
-                  <input 
-                    list="category-suggestions" 
-                    placeholder="Category" 
-                    value={category} 
-                    onChange={e => setCategory(e.target.value)} 
-                  />
-                  <datalist id="category-suggestions">
-                    {[...new Set(fruits.map(f => f.category).filter(Boolean))].map(cat => (
-                      <option key={cat} value={cat} />
-                    ))}
-                  </datalist>
-                </div>
-                <button type="submit" className="btn-save-inv">+ Add to Inventory</button>
-              </form>
-            </div>
 
-            <table className="inv-table">
-              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Unit</th><th>Actions</th></tr></thead>
-              <tbody>
-                {fruits.length === 0 && (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '35px 20px', color: 'var(--text-muted)' }}>
-                      No products in your catalog yet. Fill out the form above to add your first product.
-                    </td>
-                  </tr>
-                )}
-                {fruits
-                  .filter(f => (invSelectedCategory === "All" || f.category === invSelectedCategory))
-                  .filter(f => f.name.toLowerCase().includes(invSearchTerm.toLowerCase()))
-                  .map(f => (
-                  <tr key={f.id}>
-                    {editingId === f.id ? (
-                      <>
-                        <td><input value={editFormData.name} onChange={e=>setEditFormData({...editFormData, name:e.target.value})} /></td>
-                        <td><input value={editFormData.category} onChange={e=>setEditFormData({...editFormData, category:e.target.value})} /></td>
-                        <td><input value={editFormData.price} onChange={e=>setEditFormData({...editFormData, price:e.target.value})} /></td>
-                        <td><input value={editFormData.unit} onChange={e=>setEditFormData({...editFormData, unit:e.target.value})} /></td>
-                        <td><button className="btn-edit-row" onClick={()=>saveEdit(f.id)}>Save</button></td>
-                      </>
-                    ) : (
-                      <>
-                        <td>{f.name}</td><td>{f.category}</td><td>₱{f.price.toFixed(2)}</td><td>{f.unit}</td>
-                        <td>
-                          <button className="btn-edit-row" onClick={()=>{setEditingId(f.id); setEditFormData(f)}}>Edit</button>
-                          <button onClick={() => deleteFruit(f.id)} className="text-del" style={{marginLeft:'10px'}}>Delete</button>
+              <div className="inv-form-card">
+                <div className="inv-form-header">
+                  <div>
+                    <h4>Add New Product</h4>
+                    <p>Register new produce or goods into your store catalog</p>
+                  </div>
+                </div>
+                <form onSubmit={addFruit}>
+                  <div className="form-grid">
+                    <div className="form-field-group">
+                      <label>Product Name</label>
+                      <input
+                        placeholder="e.g. Avocado Davao"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field-group">
+                      <label>Price (₱)</label>
+                      <div className="input-with-prefix">
+                        <span className="input-prefix">₱</span>
+                        <input
+                          placeholder="0.00"
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={price}
+                          onChange={e => setPrice(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="form-field-group">
+                      <label>Pricing Unit</label>
+                      <input
+                        placeholder="kg, pc, pack, tali..."
+                        value={unit}
+                        onChange={e => setUnit(e.target.value)}
+                        required
+                      />
+                      <div className="unit-quick-picks">
+                        {['kg', 'pc', 'pack', 'tali'].map(u => (
+                          <button
+                            type="button"
+                            key={u}
+                            className={`unit-pick-btn ${unit.toLowerCase() === u ? 'selected' : ''}`}
+                            onClick={() => setUnit(u)}
+                          >
+                            {u}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="form-field-group">
+                      <label>Category</label>
+                      <input
+                        list="category-suggestions"
+                        placeholder="e.g. Fruits, Veggies"
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                      />
+                      <datalist id="category-suggestions">
+                        {[...new Set(fruits.map(f => f.category).filter(Boolean))].map(cat => (
+                          <option key={cat} value={cat} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                  <button type="submit" className="btn-save-inv">
+                    <Plus size={16} />
+                    <span>Add to Inventory</span>
+                  </button>
+                </form>
+              </div>
+
+              <div className="inv-table-wrapper">
+                <table className="inv-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Unit</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fruits.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="inv-empty-cell">
+                          <div className="inv-empty-state">
+                            <Package size={36} className="inv-empty-icon" />
+                            <h4>Your catalog is empty</h4>
+                            <p>Fill out the form above to add your first product.</p>
+                          </div>
                         </td>
-                      </>
+                      </tr>
+                    ) : filteredFruits.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="inv-empty-cell">
+                          <div className="inv-empty-state">
+                            <MagnifyingGlass size={36} className="inv-empty-icon" />
+                            <h4>No matching products</h4>
+                            <p>No items found matching “{invSearchTerm}” in “{invSelectedCategory}”.</p>
+                            <button
+                              type="button"
+                              className="btn-clear-filters"
+                              onClick={() => { setInvSearchTerm(''); setInvSelectedCategory('All'); }}
+                            >
+                              Clear Search & Filters
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredFruits.map(f => (
+                        <tr key={f.id} className={editingId === f.id ? "row-editing" : ""}>
+                          {editingId === f.id ? (
+                            <>
+                              <td>
+                                <input
+                                  className="inv-edit-input"
+                                  value={editFormData.name}
+                                  placeholder="Product Name"
+                                  onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  className="inv-edit-input"
+                                  value={editFormData.category}
+                                  placeholder="Category"
+                                  onChange={e => setEditFormData({ ...editFormData, category: e.target.value })}
+                                />
+                              </td>
+                              <td>
+                                <div className="input-with-prefix">
+                                  <span className="input-prefix">₱</span>
+                                  <input
+                                    className="inv-edit-input"
+                                    type="number"
+                                    step="any"
+                                    value={editFormData.price}
+                                    placeholder="Price"
+                                    onChange={e => setEditFormData({ ...editFormData, price: e.target.value })}
+                                  />
+                                </div>
+                              </td>
+                              <td>
+                                <input
+                                  className="inv-edit-input"
+                                  value={editFormData.unit}
+                                  placeholder="Unit"
+                                  onChange={e => setEditFormData({ ...editFormData, unit: e.target.value })}
+                                />
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <div className="inv-edit-actions">
+                                  <button
+                                    type="button"
+                                    className="btn-save-row"
+                                    onClick={() => saveEdit(f.id)}
+                                    title="Save changes"
+                                  >
+                                    <Check size={14} />
+                                    <span>Save</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-cancel-row"
+                                    onClick={() => setEditingId(null)}
+                                    title="Cancel editing"
+                                  >
+                                    <X size={14} />
+                                    <span>Cancel</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td>
+                                <div className="inv-product-name">
+                                  <strong>{f.name}</strong>
+                                </div>
+                              </td>
+                              <td>
+                                <span className="inv-cat-pill">{f.category || "Uncategorized"}</span>
+                              </td>
+                              <td>
+                                <span className="inv-price-val">₱{f.price.toFixed(2)}</span>
+                              </td>
+                              <td>
+                                <span className="inv-unit-tag">{f.unit}</span>
+                              </td>
+                              <td style={{ textAlign: 'right' }}>
+                                <div className="inv-row-actions">
+                                  <button
+                                    type="button"
+                                    className="btn-edit-row"
+                                    onClick={() => { setEditingId(f.id); setEditFormData(f); }}
+                                    title="Edit product"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteFruit(f.id)}
+                                    className="btn-delete-row"
+                                    title="Delete product"
+                                  >
+                                    <Trash size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))
                     )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
 
         {view === 'orders' && (
           <div className="orders-screen">
@@ -1100,7 +2012,7 @@ function App() {
                     <span className="h-total-amount">₱{(o.total || 0).toFixed(2)}</span>
                     <div className="h-actions no-print">
                       <button className="btn-screenshot" onClick={() => downloadReceipt(o.id)} title="Download Receipt"><Camera size={16} /></button>
-                      <button className="btn-delete-order" onClick={() => deleteOrder(o.id)} title="Delete Order"><Trash2 size={16} /></button>
+                      <button className="btn-delete-order" onClick={() => deleteOrder(o.id)} title="Delete Order"><Trash size={16} /></button>
                     </div>
                   </div>
                 </div>
@@ -1129,7 +2041,7 @@ function App() {
                     <div className="sel-click-area" onClick={() => setSelectedOrderIds(prev => prev.includes(o.id) ? prev.filter(i => i !== o.id) : [...prev, o.id])}>
                        <input type="checkbox" checked={selectedOrderIds.includes(o.id)} readOnly />
                        <div className="o-info">
-                         <strong>{o.customer_name} {o.status === 'Delivered' && <CheckCircle2 size={16} className="status-delivered-icon" />}</strong>
+                         <strong>{o.customer_name} {o.status === 'Delivered' && <CheckCircle size={16} weight="fill" className="status-delivered-icon" />}</strong>
                          <p>{o.address}</p>
                        </div>
                     </div>
@@ -1205,36 +2117,143 @@ function App() {
       {view === 'pos' && (
         <aside className="bill-sidebar">
           <div className="bill-header">
-            <div className="order-tag">Checkout</div>
-            <input placeholder="Customer Name" value={customer} onChange={e => setCustomer(e.target.value)} className="customer-input" />
-            {receiptConfig?.show_address_field !== false && (
-              <input placeholder="Address (Type '4' for Phase 4)" value={address} onChange={e => setAddress(e.target.value)} className="customer-input" />
+            <div className="bill-header-top">
+              <div className="bill-title-wrap">
+                <ShoppingCart size={18} className="bill-cart-icon" />
+                <h3>Current Order</h3>
+              </div>
+              <span className="cart-count-badge">
+                {cart.length} {cart.length === 1 ? 'item' : 'items'}
+              </span>
+            </div>
+            
+            <div className="bill-customer-inputs">
+              <input
+                placeholder="Customer Name (optional)"
+                value={customer}
+                onChange={e => setCustomer(e.target.value)}
+                className="customer-input"
+              />
+              {receiptConfig?.show_address_field !== false && (
+                <input
+                  placeholder="Address (e.g. Phase 4, Walk-in)"
+                  value={address}
+                  onChange={e => setAddress(e.target.value)}
+                  className="customer-input"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="bill-items">
+            {cart.length === 0 ? (
+              <div className="cart-empty-state">
+                <ShoppingCart size={38} className="cart-empty-icon" />
+                <h4>Cart is empty</h4>
+                <p>Tap products or enter scale weights to build this customer order.</p>
+              </div>
+            ) : (
+              cart.map(item => (
+                <div key={item.cartId} className="bill-row">
+                  <div className="bill-row-top">
+                    <strong className="bill-item-title" title={item.name}>{item.name}</strong>
+                    <div className="bill-row-top-right">
+                      <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
+                      <button
+                        type="button"
+                        className="btn-remove-item"
+                        onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))}
+                        title={`Remove ${item.name}`}
+                        aria-label={`Remove ${item.name} from cart`}
+                      >
+                        <X size={14} weight="bold" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bill-row-bottom">
+                    <span className="bill-item-rate">
+                      ₱{item.price.toFixed(2)} / {item.unit}
+                    </span>
+                    <span className="bill-item-qty-badge">
+                      {item.quantity} <span className="qty-unit">{item.unit}</span>
+                    </span>
+                  </div>
+                </div>
+              ))
             )}
           </div>
-          <div className="bill-items">
-            {cart.map(item => (
-              <div key={item.cartId} className="bill-row">
-                <div className="bill-item-info"><strong>{item.name}</strong><p>{item.quantity}{item.unit}</p></div>
-                <div className="bill-item-right">
-                  <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
-                  <button className="btn-remove-item" onClick={() => setCart(cart.filter(c => c.cartId !== item.cartId))} title="Remove item"><X size={14} /></button>
-                </div>
-              </div>
-            ))}
-          </div>
+
           <div className="bill-footer">
-            <div className="total-line"><span>Total:</span><span>₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span></div>
-            <button className="btn-navy" onClick={() => setCart([])}>Clear</button>
-            <button className="btn-checkout" onClick={completeOrder}>Complete Transaction</button>
+            <div className="total-line">
+              <span className="total-label">Total Amount</span>
+              <span className="total-val">₱{cart.reduce((a, i) => a + i.subtotal, 0).toFixed(2)}</span>
+            </div>
+            <div className="bill-footer-buttons">
+              <button
+                type="button"
+                className="btn-clear-cart"
+                onClick={handleClearCart}
+                disabled={cart.length === 0}
+                title="Clear current cart"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className="btn-checkout"
+                onClick={completeOrder}
+                disabled={cart.length === 0 || isCheckingOut}
+              >
+                <CheckCircle size={18} weight="bold" />
+                <span>{isCheckingOut ? "Processing..." : "Complete Transaction"}</span>
+              </button>
+            </div>
           </div>
         </aside>
+      )}
+
+      {/* 5-Second Non-Blocking Rollback Undo Banner */}
+      {undoBanner && (
+        <div className="checkout-undo-banner" role="status" aria-live="polite">
+          <div className="undo-banner-left">
+            <span className="undo-pulse-dot" aria-hidden="true" />
+            <span className="undo-banner-text">
+              Order for <strong>{undoBanner.customerName}</strong> completed (₱{undoBanner.total?.toFixed(2)})
+            </span>
+          </div>
+          <div className="undo-banner-actions">
+            <button 
+              type="button" 
+              className="btn-undo-checkout"
+              onClick={() => handleUndoOrder(undoBanner.id)}
+            >
+              <ArrowCounterClockwise size={14} weight="bold" />
+              <span>Undo Checkout</span>
+            </button>
+            <button 
+              type="button" 
+              className="btn-undo-dismiss"
+              onClick={() => {
+                if (undoTimerRef.current) {
+                  clearTimeout(undoTimerRef.current);
+                  undoTimerRef.current = null;
+                }
+                setUndoBanner(null);
+              }}
+              aria-label="Dismiss undo notification"
+            >
+              <X size={14} weight="bold" />
+            </button>
+          </div>
+          <div className="undo-progress-bar" />
+        </div>
       )}
       {completedReceiptModal && (
         <div className="parser-modal-overlay" onClick={() => setCompletedReceiptModal(null)}>
           <div className="parser-modal-content receipt-popup-modal" onClick={e => e.stopPropagation()}>
             <div className="receipt-popup-header">
               <div className="receipt-popup-badge">
-                <CheckCircle2 size={18} color="#10b981" />
+                <CheckCircle size={18} weight="fill" color="#10b981" />
                 <span>Transaction Complete</span>
               </div>
               <button className="receipt-popup-close" onClick={() => setCompletedReceiptModal(null)}>
@@ -1289,6 +2308,17 @@ function App() {
             </div>
 
             <div className="receipt-popup-actions">
+              {undoBanner && undoBanner.id === completedReceiptModal.id && (
+                <button 
+                  type="button"
+                  className="btn-undo-instant-receipt"
+                  onClick={() => handleUndoOrder(completedReceiptModal.id)}
+                  title="Undo this checkout and restore items to cart"
+                >
+                  <ArrowCounterClockwise size={16} weight="bold" />
+                  <span>Undo Checkout</span>
+                </button>
+              )}
               <button 
                 className="btn-download-instant-receipt"
                 onClick={() => {

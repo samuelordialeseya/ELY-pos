@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T14:42:00.000Z",
+  "title": "Design System: ELY.pos",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Vivid Sky Cyan",
+        "canonical": "#00A3E0",
+        "tonalRamp": [
+          "#002A3D",
+          "#005273",
+          "#007DAE",
+          "#00A3E0",
+          "#33B6E7",
+          "#70CBEE",
+          "#B3E4F6",
+          "#E0F7FF"
+        ]
+      },
+      "primary-light": {
+        "role": "primary-tint",
+        "displayName": "Ice Cyan Tint",
+        "canonical": "#E0F7FF",
+        "tonalRamp": [
+          "#004561",
+          "#007DAE",
+          "#00A3E0",
+          "#33B6E7",
+          "#70CBEE",
+          "#B3E4F6",
+          "#E0F7FF",
+          "#F5FCFF"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Deep Charcoal Slate",
+        "canonical": "#1F2937",
+        "tonalRamp": [
+          "#0B0E14",
+          "#111827",
+          "#1F2937",
+          "#374151",
+          "#4B5563",
+          "#6B7280",
+          "#9CA3AF",
+          "#F3F4F6"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Emerald Checkout Green",
+        "canonical": "#10B981",
+        "tonalRamp": [
+          "#064E3B",
+          "#065F46",
+          "#047857",
+          "#059669",
+          "#10B981",
+          "#34D399",
+          "#6EE7B7",
+          "#D1FAE5"
+        ]
+      },
+      "warning": {
+        "role": "accent",
+        "displayName": "Market Amber",
+        "canonical": "#F59E0B",
+        "tonalRamp": [
+          "#78350F",
+          "#92400E",
+          "#B45309",
+          "#D97706",
+          "#F59E0B",
+          "#FBBF24",
+          "#FDE68A",
+          "#FEF3C7"
+        ]
+      },
+      "danger": {
+        "role": "destructive",
+        "displayName": "Signal Red",
+        "canonical": "#EF4444",
+        "tonalRamp": [
+          "#7F1D1D",
+          "#991B1B",
+          "#B91C1C",
+          "#DC2626",
+          "#EF4444",
+          "#F87171",
+          "#FCA5A5",
+          "#FEE2E2"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Market Paper Background",
+        "canonical": "#F9FAFB",
+        "tonalRamp": [
+          "#111827",
+          "#1F2937",
+          "#374151",
+          "#6B7280",
+          "#9CA3AF",
+          "#E5E7EB",
+          "#F3F4F6",
+          "#F9FAFB"
+        ]
+      },
+      "neutral-surface": {
+        "role": "surface",
+        "displayName": "Pure Surface White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#1F2937",
+          "#4B5563",
+          "#9CA3AF",
+          "#D1D5DB",
+          "#E5E7EB",
+          "#F3F4F6",
+          "#F9FAFB",
+          "#FFFFFF"
+        ]
+      },
+      "neutral-border": {
+        "role": "border",
+        "displayName": "Light Border Gray",
+        "canonical": "#E5E7EB",
+        "tonalRamp": [
+          "#111827",
+          "#374151",
+          "#6B7280",
+          "#9CA3AF",
+          "#D1D5DB",
+          "#E5E7EB",
+          "#F3F4F6",
+          "#F9FAFB"
+        ]
+      },
+      "text-main": {
+        "role": "text",
+        "displayName": "Rich Slate Black",
+        "canonical": "#111827",
+        "tonalRamp": [
+          "#030712",
+          "#111827",
+          "#1F2937",
+          "#374151",
+          "#4B5563",
+          "#6B7280",
+          "#9CA3AF",
+          "#E5E7EB"
+        ]
+      },
+      "text-muted": {
+        "role": "text-secondary",
+        "displayName": "Cool Gray",
+        "canonical": "#6B7280",
+        "tonalRamp": [
+          "#111827",
+          "#1F2937",
+          "#374151",
+          "#4B5563",
+          "#6B7280",
+          "#9CA3AF",
+          "#D1D5DB",
+          "#F3F4F6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Prominent terminal headers, greeting lines, and landing hero value propositions."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Primary module views, modal banners, and wizard screen titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Produce card titles, metric summary figures, and card headers."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "General interface labels, line-item specs, customer names, and addresses."
+      },
+      "label": {
+        "displayName": "Label / Badge",
+        "purpose": "Category filters, status tags, table headers, and timestamp metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-sm",
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+        "purpose": "Soft rest elevation for search inputs and standard cards."
+      },
+      {
+        "name": "ambient-md",
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.08)",
+        "purpose": "Hover elevation for interactive produce cards and sidebar modules."
+      },
+      {
+        "name": "ambient-float",
+        "value": "0 25px 60px -15px rgba(0, 0, 0, 0.35)",
+        "purpose": "Full modal focus elevation for setup wizard and receipt dialogs."
+      },
+      {
+        "name": "primary-glow",
+        "value": "0 4px 12px rgba(0, 163, 224, 0.35)",
+        "purpose": "Luminous hover depth for primary Sky Cyan CTA buttons."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-smooth",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Smooth iOS-style transitions for modals, slides, and card transforms."
+      },
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "purpose": "Tactile bouncy micro-interactions on nav icons and button clicks."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "640px" },
+      { "name": "ipad-portrait", "value": "768px" },
+      { "name": "ipad-landscape", "value": "1180px" },
+      { "name": "desktop", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standard primary button for confirms, add-actions, and wizard steps.",
+      "html": "<button class=\"ds-btn-primary\">Continue</button>",
+      "css": ".ds-btn-primary { background: #00A3E0; color: #ffffff; padding: 12px 24px; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0, 163, 224, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-primary:hover { background: #0294cc; box-shadow: 0 6px 16px rgba(0, 163, 224, 0.4); transform: translateY(-1px); }"
+    },
+    {
+      "name": "Complete Transaction Button",
+      "kind": "button",
+      "refersTo": "button-success",
+      "description": "Prominent green button anchoring the checkout ticket in the POS cart.",
+      "html": "<button class=\"ds-btn-checkout\">Complete Transaction</button>",
+      "css": ".ds-btn-checkout { background: #10B981; color: #ffffff; padding: 14px 20px; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: all 0.2s ease; } .ds-btn-checkout:hover { background: #059669; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45); transform: translateY(-1px); }"
+    },
+    {
+      "name": "Search & Data Field Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Crisp text and numeric scale input with responsive cyan halo focus.",
+      "html": "<input type=\"text\" class=\"ds-input-field\" placeholder=\"Search products...\" />",
+      "css": ".ds-input-field { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-family: 'Poppins', sans-serif; font-size: 14px; color: #0f172a; outline: none; width: 100%; box-sizing: border-box; transition: all 0.2s ease; } .ds-input-field:focus { border-color: #00A3E0; background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.15); }"
+    },
+    {
+      "name": "Category Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-category",
+      "description": "Filter pill for fast produce category switching on counter screens.",
+      "html": "<button class=\"ds-chip active\">All Items</button>",
+      "css": ".ds-chip { padding: 8px 16px; border-radius: 9999px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer; transition: all 0.2s ease; } .ds-chip:hover { border-color: #00A3E0; color: #00A3E0; } .ds-chip.active { background: #00A3E0; color: #ffffff; border-color: #00A3E0; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 163, 224, 0.25); }"
+    },
+    {
+      "name": "Produce Food Card",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "Touch card displaying product category, price, and embedded weight scale input.",
+      "html": "<div class=\"ds-card-product\"><span class=\"ds-card-badge\">Fruits</span><h4 class=\"ds-card-title\">Sweet Mango</h4><p class=\"ds-card-price\">₱160.00 / kg</p><div class=\"ds-card-row\"><input type=\"number\" class=\"ds-card-input\" placeholder=\"kg\" /><button class=\"ds-card-add\">Add</button></div></div>",
+      "css": ".ds-card-product { background: #ffffff; border: 1px solid #f1f5f9; border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); font-family: 'Poppins', sans-serif; position: relative; } .ds-card-badge { display: inline-block; font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; margin-bottom: 8px; } .ds-card-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; } .ds-card-price { font-size: 14px; font-weight: 600; color: #00A3E0; margin: 0 0 12px 0; } .ds-card-row { display: flex; gap: 8px; } .ds-card-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; font-size: 14px; outline: none; background: #f8fafc; } .ds-card-add { background: #00A3E0; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sunlit Market Terminal",
+    "overview": "ELY.pos is designed for the tactile, fast-moving energy of a busy produce stall and small neighborhood retail. The interface balances the breezy, luminous clarity of an Apple boutique with the rock-solid, glanceable ergonomics of a modern SaaS operations terminal. Every screen is engineered for zero-hesitation counter interactions: massive tap targets, clear decimal weight inputs, high-contrast typography, and immediate visual feedback under harsh shop lighting or tilted iPad glass.\n\nInstead of heavy enterprise menus, dark industrial grids, or clutter, ELY.pos lives in clean, sunlit light mode. Soft off-white backgrounds (#F9FAFB) host pure white cards (#FFFFFF) with generous 14px rounded corners and subtle ambient diffusions. Vibrant module-specific gradients animate each functional hub, while the primary sky blue (#00A3E0) anchors branding, selection, and action.",
+    "keyCharacteristics": [
+      "Sunlit Clarity: Light, airy, high-contrast surface canvas designed to stay effortlessly legible on counter tablets.",
+      "Purpose-Driven Color Grammar: Colors are functional indicators, not decorative noise. Green completes transactions; Sky Blue steers interaction; Amber monitors scale catalog.",
+      "Touch-First Precision: Minimum 38px tap boundaries, oversized inputs, and fractional scale multipliers built for fast fingers.",
+      "Glanceable Hierarchy: Distinct typographic roles in Poppins that communicate unit prices, item quantities, and total sums in a split second."
+    ],
+    "rules": [
+      {
+        "name": "The Emerald Checkout Rule",
+        "body": "Green (#10B981) is never used for generic UI buttons, links, or decoration. It is strictly reserved for finalizing transactions, earning revenue, and signifying completed order fulfillment.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Blue Rule",
+        "body": "Sky Cyan (#00A3E0) commands active focus. Only one primary blue CTA should claim prominence per visual view.",
+        "section": "colors"
+      },
+      {
+        "name": "The Peso Prominence Rule",
+        "body": "Currency amounts are always bolded (600 or 700) and lead with the Philippine Peso symbol (₱). Product list prices always display with decimal cents (₱150.00 / kg).",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "body": "All interface cards sit grounded on the canvas with 1px soft borders (#E5E7EB). Elevating shadows and micro-transforms (translateY(-2px)) emerge only as direct responses to touch, hover, or modal focus.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do maintain a minimum touch target size of 38px x 38px for every clickable element on iPad screens.",
+      "Do format all currency numbers with the Philippine Peso symbol and two decimal places (e.g., ₱1,250.00).",
+      "Do use 100dvh for full-height root views to prevent mobile Safari viewport clipping.",
+      "Do keep the Cart Sidebar hidden (no-cart grid) on all non-register views to give data tables breathing room.",
+      "Do provide instant visual feedback (toast notification or button state) within 100ms of any cart or inventory action."
+    ],
+    "donts": [
+      "Don't use Emerald Green (#10B981) for navigation tabs, informational tags, or secondary buttons.",
+      "Don't introduce dark-mode inverted surfaces inside the main cashier workflow; maintain sunlit high legibility.",
+      "Don't allow the root POS window or sidebar to scroll vertically; keep scrolling strictly inside .main-viewport and .bill-items.",
+      "Don't use pure black (#000000) for text; use #111827 or #0F172A to prevent eye strain during long counter shifts."
+    ]
+  }
+}

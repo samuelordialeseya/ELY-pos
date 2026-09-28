@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
 
   const loginWithEmail = async (email, password, rememberMe = false) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    setUser(cred.user);
     setIsDemoMode(false);
     localStorage.removeItem("elypos_is_demo");
     // Persist remembered email for quick access on the store iPad
@@ -67,6 +68,7 @@ export function AuthProvider({ children }) {
       if (displayName) {
         await updateProfile(cred.user, { displayName: storeNameToUse });
       }
+      setUser(cred.user);
       localStorage.setItem("elypos_store_name", storeNameToUse);
       localStorage.removeItem("elypos_setup_done");
       localStorage.removeItem(`elypos_setup_done_${cred.user.uid}`);
@@ -89,6 +91,7 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
+    setUser(result.user);
     setIsDemoMode(false);
     localStorage.removeItem("elypos_is_demo");
     return result.user;

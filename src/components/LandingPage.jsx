@@ -2,21 +2,21 @@ import React from "react";
 import "./LandingPage.css";
 import { 
   ShoppingCart, 
-  Sparkles, 
-  Scale, 
+  Sparkle, 
+  Scales, 
   Package, 
   Truck, 
   Receipt, 
-  BarChart3, 
+  ChartBar, 
   ShieldCheck, 
   ArrowRight, 
-  Github, 
-  CheckCircle2, 
-  Zap, 
-  Smartphone,
-  Layers,
-  ExternalLink
-} from "lucide-react";
+  GithubLogo, 
+  CheckCircle, 
+  Lightning, 
+  DeviceMobile, 
+  Stack, 
+  ArrowSquareOut
+} from "@phosphor-icons/react";
 
 export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
   return (
@@ -61,14 +61,14 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
             className="landing-nav-github"
             title="GitHub Repository"
           >
-            <Github size={18} />
+            <GithubLogo size={18} weight="bold" />
             <span>GitHub</span>
           </a>
           <button className="landing-btn-auth" onClick={onOpenAuth}>
             Sign In
           </button>
           <button className="landing-btn-demo" onClick={onLaunchDemo} title="Try Live Demo">
-            <Sparkles size={16} />
+            <Sparkle size={16} weight="fill" />
             <span>Try Demo</span>
           </button>
         </nav>
@@ -95,9 +95,9 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="hero-cta-group">
             <button className="hero-btn-primary" onClick={onLaunchDemo}>
-              <Sparkles size={18} />
+              <Sparkle size={18} weight="fill" />
               <span>Try Live Demo</span>
-              <ArrowRight size={18} className="cta-arrow" />
+              <ArrowRight size={18} weight="bold" className="cta-arrow" />
             </button>
 
             <button className="hero-btn-secondary" onClick={onOpenAuth}>
@@ -107,15 +107,15 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="hero-perks">
             <div className="hero-perk-item">
-              <CheckCircle2 size={16} className="perk-icon" />
+              <CheckCircle size={16} weight="fill" className="perk-icon" />
               <span>100% Free Demo Sandbox</span>
             </div>
             <div className="hero-perk-item">
-              <CheckCircle2 size={16} className="perk-icon" />
+              <CheckCircle size={16} weight="fill" className="perk-icon" />
               <span>Real-time Firebase Cloud Sync</span>
             </div>
             <div className="hero-perk-item">
-              <CheckCircle2 size={16} className="perk-icon" />
+              <CheckCircle size={16} weight="fill" className="perk-icon" />
               <span>iPad & PWA Ready</span>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon-box blue">
-              <Scale size={24} />
+              <Scales size={24} weight="bold" />
             </div>
             <h3>Dual Weight & Unit Pricing</h3>
             <p>
@@ -285,7 +285,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="feature-card">
             <div className="feature-icon-box teal">
-              <Package size={24} />
+              <Package size={24} weight="bold" />
             </div>
             <h3>Touch-First Catalog & Inventory</h3>
             <p>
@@ -296,7 +296,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="feature-card">
             <div className="feature-icon-box orange">
-              <Truck size={24} />
+              <Truck size={24} weight="bold" />
             </div>
             <h3>Delivery Manifest Generator</h3>
             <p>
@@ -307,7 +307,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="feature-card">
             <div className="feature-icon-box green">
-              <Receipt size={24} />
+              <Receipt size={24} weight="bold" />
             </div>
             <h3>Graphic Digital Receipts</h3>
             <p>
@@ -318,7 +318,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="feature-card">
             <div className="feature-icon-box purple">
-              <BarChart3 size={24} />
+              <ChartBar size={24} weight="bold" />
             </div>
             <h3>Live Sales & Daily Analytics</h3>
             <p>
@@ -329,7 +329,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
           <div className="feature-card">
             <div className="feature-icon-box red">
-              <Zap size={24} />
+              <Lightning size={24} weight="fill" />
             </div>
             <h3>Zero-Lag Touch Performance</h3>
             <p>
@@ -396,7 +396,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
           </p>
           <div className="cta-banner-buttons">
             <button className="cta-btn-white" onClick={onLaunchDemo}>
-              <Sparkles size={18} />
+              <Sparkle size={18} weight="fill" />
               <span>Launch Demo Sandbox</span>
             </button>
             <button className="cta-btn-ghost" onClick={onOpenAuth}>
@@ -424,9 +424,9 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
             rel="noopener noreferrer"
             className="footer-github-link"
           >
-            <Github size={16} />
+            <GithubLogo size={16} weight="bold" />
             <span>View Source on GitHub</span>
-            <ExternalLink size={12} />
+            <ArrowSquareOut size={12} weight="bold" />
           </a>
           <span className="footer-version">v2.4 Production</span>
         </div>

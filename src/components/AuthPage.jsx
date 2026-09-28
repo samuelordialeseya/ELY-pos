@@ -3,15 +3,15 @@ import "./AuthPage.css";
 import { useAuth } from "../context/AuthContext";
 import { 
   Lock, 
-  Mail, 
+  Envelope, 
   User, 
-  Sparkles, 
+  Sparkle, 
   ArrowLeft, 
-  AlertCircle, 
-  CheckCircle2,
+  WarningCircle, 
+  CheckCircle,
   Eye,
-  EyeOff
-} from "lucide-react";
+  EyeSlash
+} from "@phosphor-icons/react";
 
 export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
   const { 
@@ -128,7 +128,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
       <div className="auth-card">
         {/* Back link */}
         <button className="auth-back-btn" onClick={onBackToLanding}>
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} weight="bold" />
           <span>Back to Landing</span>
         </button>
 
@@ -152,7 +152,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
             <span>Explore the POS in an isolated sandbox with zero signup.</span>
           </div>
           <button className="auth-btn-quick-demo" onClick={handleDemoAccess} type="button">
-            <Sparkles size={15} />
+            <Sparkle size={15} weight="fill" />
             <span>Launch Demo</span>
           </button>
         </div>
@@ -160,14 +160,14 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
         {/* Tab Selector */}
         <div className="auth-tabs">
           <button 
-            type="button"
+            type="button" 
             className={`auth-tab ${!isSignUp ? "active" : ""}`} 
             onClick={() => handleToggleSignUp(false)}
           >
             Sign In
           </button>
           <button 
-            type="button"
+            type="button" 
             className={`auth-tab ${isSignUp ? "active" : ""}`} 
             onClick={() => handleToggleSignUp(true)}
           >
@@ -178,14 +178,14 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
         {/* Feedback Messages */}
         {error && (
           <div className="auth-alert error">
-            <AlertCircle size={16} />
+            <WarningCircle size={16} weight="bold" />
             <span>{error}</span>
           </div>
         )}
 
         {successMsg && (
           <div className="auth-alert success">
-            <CheckCircle2 size={16} />
+            <CheckCircle size={16} weight="fill" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -211,7 +211,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
           <div className="auth-field">
             <label className="auth-label">Email Address</label>
             <div className="auth-input-wrapper">
-              <Mail size={18} className="input-icon" />
+              <Envelope size={18} className="input-icon" />
               <input 
                 type="email" 
                 className="auth-input" 
@@ -241,7 +241,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>

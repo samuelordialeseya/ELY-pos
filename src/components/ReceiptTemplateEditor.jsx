@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Receipt, Check, RotateCcw, Sparkles } from "lucide-react";
+import { Receipt, Check, ArrowCounterClockwise, Sparkle } from "@phosphor-icons/react";
 import { DEFAULT_RECEIPT_CONFIG, formatReceiptText } from "../data/receiptConfig";
 import "./ReceiptTemplateEditor.css";
 
@@ -178,7 +178,7 @@ export default function ReceiptTemplateEditor({
               onClick={handleResetDefaults}
               title="Reset fields to defaults"
             >
-              <RotateCcw size={15} />
+              <ArrowCounterClockwise size={15} weight="bold" />
               <span>Defaults</span>
             </button>
 
@@ -188,12 +188,12 @@ export default function ReceiptTemplateEditor({
             >
               {savedStatus ? (
                 <>
-                  <Check size={16} />
+                  <Check size={16} weight="bold" />
                   <span>Saved ✓</span>
                 </>
               ) : (
                 <>
-                  <Check size={16} />
+                  <Check size={16} weight="bold" />
                   <span>Save Receipt Template</span>
                 </>
               )}
@@ -206,7 +206,7 @@ export default function ReceiptTemplateEditor({
       <div className="receipt-preview-col">
         <div className="receipt-preview-header">
           <div className="receipt-preview-badge">
-            <Sparkles size={14} className="preview-sparkle-icon" />
+            <Sparkle size={14} weight="fill" className="preview-sparkle-icon" />
             <span>Live Preview</span>
           </div>
           <span className="receipt-preview-sub">Real-time receipt layout</span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { RotateCw, Compass, RefreshCw, LogOut } from "lucide-react";
+import { ArrowClockwise, Compass, ArrowsClockwise, SignOut } from "@phosphor-icons/react";
 import ReceiptTemplateEditor from "./ReceiptTemplateEditor";
 import "./SettingsPage.css";
 
@@ -128,7 +128,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onRerunWizard}
           >
-            <RotateCw size={16} />
+            <ArrowClockwise size={16} weight="bold" />
             <span>Re-run Setup Wizard</span>
           </button>
           <button
@@ -136,7 +136,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onStartFullTour}
           >
-            <Compass size={16} />
+            <Compass size={16} weight="bold" />
             <span>Take Full Guided Tour</span>
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function SettingsPage({
               }
             }}
           >
-            <RefreshCw size={16} />
+            <ArrowsClockwise size={16} weight="bold" />
             <span>Reload Terminal</span>
           </button>
         </div>
@@ -172,7 +172,7 @@ export default function SettingsPage({
             className="settings-btn settings-btn-danger"
             onClick={onSignOut}
           >
-            <LogOut size={16} />
+            <SignOut size={16} weight="bold" />
             <span>{isDemoMode ? "Exit Demo" : "Sign Out"}</span>
           </button>
         </div>
