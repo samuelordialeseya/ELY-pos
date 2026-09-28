@@ -485,8 +485,16 @@ function App() {
 
   const openWeighInModal = (product) => {
     setWeighInProduct(product);
+    const isKg = (product.unit || '').toLowerCase().includes('kg');
     const curr = getProductQty(product);
-    setModalQtyStr(curr > 0 ? String(curr) : "");
+    if (curr > 0) {
+      setModalQtyStr(String(curr));
+    } else if (!isKg) {
+      // Piece / unit items default to 1 so the cashier can immediately confirm or tap presets/numpad
+      setModalQtyStr("1");
+    } else {
+      setModalQtyStr("");
+    }
   };
 
   const closeWeighInModal = () => {
@@ -557,15 +565,8 @@ function App() {
   };
 
   const handleCardAdd = (product) => {
-    const qty = getProductQty(product);
-    const isKg = (product.unit || '').toLowerCase().includes('kg');
-    if (qty > 0) {
-      addToCart(product, qty);
-    } else if (isKg) {
-      openWeighInModal(product);
-    } else {
-      addToCart(product, 1);
-    }
+    // Open the Touch Weigh-In & Numpad modal for all items (both kg and pc)
+    openWeighInModal(product);
   };
 
   const handleClearCart = () => {
@@ -1315,10 +1316,12 @@ function App() {
 
               <div className="weighin-display-card">
                 <div className="weighin-display-left">
-                  <span className="weighin-display-label">Scale Quantity</span>
+                  <span className="weighin-display-label">
+                    {(weighInProduct.unit || '').toLowerCase().includes('kg') ? "Scale Weight" : "Quantity"}
+                  </span>
                   <div className="weighin-display-value">
                     <span className="weighin-num">
-                      {modalQtyStr || ((weighInProduct.unit || '').toLowerCase().includes('kg') ? "0.000" : "0")}
+                      {modalQtyStr || ((weighInProduct.unit || '').toLowerCase().includes('kg') ? "0.000" : "1")}
                     </span>
                     <span className="weighin-unit">{weighInProduct.unit}</span>
                   </div>
@@ -1347,7 +1350,7 @@ function App() {
                       </button>
                     ))
                   ) : (
-                    [1, 2, 3, 5, 6, 10, 12, 24].map(val => (
+                    [1, 2, 3, 4, 5, 6, 10, 12].map(val => (
                       <button
                         key={val}
                         type="button"
