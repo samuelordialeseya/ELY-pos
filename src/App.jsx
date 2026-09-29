@@ -55,8 +55,22 @@ import AuthPage from "./components/AuthPage";
 import SetupWizard from "./components/SetupWizard";
 import SettingsPage from "./components/SettingsPage";
 import { flushSync } from "react-dom";
-import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders } from "./data/demoSeed";
+import { DEMO_PRODUCTS, DEMO_ORDERS, getDemoOrders, getLocalDateKey } from "./data/demoSeed";
 import { DEFAULT_RECEIPT_CONFIG, formatReceiptText } from "./data/receiptConfig";
+
+export const getOrderDateKey = (o) => {
+  if (!o) return '';
+  if (o.created_at) {
+    const key = getLocalDateKey(o.created_at);
+    if (key) return key;
+  }
+  if (o.raw_date) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(o.raw_date)) return o.raw_date;
+    const key = getLocalDateKey(o.raw_date);
+    if (key) return key;
+  }
+  return '';
+};
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -174,10 +188,10 @@ function App() {
   const [invSearchTerm, setInvSearchTerm] = useState("");
   const [posSelectedCategory, setPosSelectedCategory] = useState("All");
   const [invSelectedCategory, setInvSelectedCategory] = useState("All");
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState(() => getLocalDateKey(new Date()));
   const [historySearch, setHistorySearch] = useState("");
   const [dashboardRange, setDashboardRange] = useState('today');
-  const [dashboardCustomDate, setDashboardCustomDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dashboardCustomDate, setDashboardCustomDate] = useState(() => getLocalDateKey(new Date()));
   const [toast, setToast] = useState("");
   const [weights, setWeights] = useState({});
   const [weighInProduct, setWeighInProduct] = useState(null);
@@ -630,7 +644,7 @@ function App() {
         items: cart, 
         total: cart.reduce((acc, i) => acc + i.subtotal, 0), 
         created_at: now.toISOString(),
-        raw_date: now.toISOString().split('T')[0], 
+        raw_date: getLocalDateKey(now), 
         display_date: now.toLocaleDateString(),
         time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         order_type: 'pos'
@@ -715,7 +729,7 @@ function App() {
   // Pre-order features removed; code omitted.
 
   const getSortedManifest = () => {
-    const selected = completedOrders.filter(o => selectedOrderIds.includes(o.id) && o.raw_date === filterDate);
+    const selected = completedOrders.filter(o => selectedOrderIds.includes(o.id) && (getOrderDateKey(o) === filterDate || o.raw_date === filterDate));
     const getPriority = (addr) => {
       const val = addr ? addr.trim() : "";
       if (val.startsWith('4')) return 1;
@@ -728,7 +742,7 @@ function App() {
   };
 
   const getDeliveryList = () => {
-    const filtered = completedOrders.filter(o => o.raw_date === filterDate);
+    const filtered = completedOrders.filter(o => getOrderDateKey(o) === filterDate || o.raw_date === filterDate);
     return filtered.sort((a, b) => {
       if (a.status === "Delivered" && b.status !== "Delivered") return 1;
       if (a.status !== "Delivered" && b.status === "Delivered") return -1;
@@ -761,20 +775,18 @@ function App() {
   };
 
   // --- DASHBOARD COMPUTATIONS (run always, cheap since they just filter arrays) ---
-  const toLocalISOString = (d) => {
-    const tzOffset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
-  };
-
-  const dashToday = toLocalISOString(new Date());
-  const dashWeekStart = (() => { const d = new Date(); d.setDate(d.getDate() - 6); return toLocalISOString(d); })();
-  const dashMonthStart = (() => { const d = new Date(); d.setDate(1); return toLocalISOString(d); })();
+  const dashToday = getLocalDateKey(new Date());
+  const dashWeekStart = (() => { const d = new Date(); d.setDate(d.getDate() - 6); return getLocalDateKey(d); })();
+  const dashMonthStart = (() => { const d = new Date(); d.setDate(1); return getLocalDateKey(d); })();
 
   const dashOrders = completedOrders.filter(o => {
-    if (dashboardRange === 'today') return o.raw_date === dashToday;
-    if (dashboardRange === 'week') return o.raw_date >= dashWeekStart && o.raw_date <= dashToday;
-    if (dashboardRange === 'month') return o.raw_date >= dashMonthStart && o.raw_date <= dashToday;
-    if (dashboardRange === 'custom') return o.raw_date === dashboardCustomDate;
+    const oDate = getOrderDateKey(o);
+    if (!oDate && !o.raw_date) return false;
+    const effDate = oDate || o.raw_date;
+    if (dashboardRange === 'today') return effDate === dashToday || o.raw_date === dashToday;
+    if (dashboardRange === 'week') return (effDate >= dashWeekStart && effDate <= dashToday) || (o.raw_date >= dashWeekStart && o.raw_date <= dashToday);
+    if (dashboardRange === 'month') return (effDate >= dashMonthStart && effDate <= dashToday) || (o.raw_date >= dashMonthStart && o.raw_date <= dashToday);
+    if (dashboardRange === 'custom') return effDate === dashboardCustomDate || o.raw_date === dashboardCustomDate;
     return false;
   });
 
@@ -806,7 +818,8 @@ function App() {
 
   // --- HISTORY COMPUTATIONS ---
   const historyFilteredOrders = completedOrders.filter(o => {
-    const matchDate = o.raw_date === filterDate;
+    const oDate = getOrderDateKey(o);
+    const matchDate = oDate === filterDate || o.raw_date === filterDate;
     const matchName = historySearch.trim() === '' || (o.customer_name || '').toLowerCase().includes(historySearch.trim().toLowerCase());
     return matchDate && matchName;
   });
@@ -1155,8 +1168,13 @@ function App() {
                   </button>
                 </div>
               )}
-              <button className="btn-help-icon" onClick={() => startTour(view)} title="Setup Guide & Tour">
-                ?
+              <button 
+                className="btn-help-icon" 
+                onClick={() => startTour(view)} 
+                title="Interactive Guide & Tour"
+                aria-label="Interactive Guide & Tour"
+              >
+                <Question size={20} weight="bold" />
               </button>
               <div className="info-pill"><span className="pill-label">Today</span><span className="pill-value">{new Date().toLocaleDateString()}</span></div>
             </div>

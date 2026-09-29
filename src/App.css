@@ -346,31 +346,48 @@
 
 .category-filter-bar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 12px 6px 2px;
+  flex-wrap: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.category-filter-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .cat-filter-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
   background: white;
   border: 1px solid #E5E7EB;
-  padding: 8px 18px;
-  border-radius: 12px;
-  font-size: 14px;
-  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
   cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-  /* Slight lift */
-  transition: 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.cat-filter-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .cat-filter-btn.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 163, 224, 0.4);
-  /* Active glow */
+  box-shadow: 0 3px 10px rgba(0, 163, 224, 0.35);
+  font-weight: 700;
 }
 
 .header-right-info {
@@ -401,45 +418,50 @@
 }
 
 .btn-help-icon {
-  background: white;
-  border: 1px solid #E5E7EB;
-  color: var(--primary);
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  font-size: 16px;
-  font-weight: 600;
+  background: #ffffff;
+  border: 1.5px solid #E2E8F0;
+  color: #0284C7;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   outline: none;
   font-family: inherit;
+  padding: 0;
 }
 
 .btn-help-icon:hover {
-  background: var(--primary-light);
-  border-color: rgba(0, 163, 224, 0.3);
+  background: #F0F9FF;
+  border-color: #38BDF8;
+  color: #0369A1;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15);
 }
 
 .btn-help-icon:active {
   transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .info-pill {
   background: white;
-  padding: 10px 18px;
-  border-radius: 14px;
-  border: 1px solid #E5E7EB;
+  padding: 6px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
   text-align: right;
-  min-width: 120px;
-  box-shadow: var(--shadow-sm);
+  min-width: 110px;
+  height: 44px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .pill-label {
@@ -772,8 +794,8 @@
 }
 
 .inv-price-val {
-  font-weight: 700;
-  color: var(--primary);
+  font-weight: 800;
+  color: #0f172a;
   font-size: 15px;
 }
 
@@ -853,45 +875,46 @@
 }
 
 .btn-save-row {
-  background: #10b981;
+  background: #059669;
   color: #ffffff;
-  border: none;
-  padding: 6px 12px;
+  border: 1.5px solid #047857;
+  padding: 8px 18px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
   transition: all 0.15s ease;
 }
 
 .btn-save-row:hover {
-  background: #059669;
+  background: #047857;
 }
 
 .btn-cancel-row {
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  padding: 6px 10px;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
+  padding: 8px 18px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.15s ease;
 }
 
 .btn-cancel-row:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 /* Empty States */
@@ -1336,8 +1359,9 @@
 }
 
 .bill-item-price {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 15px;
+  color: #0f172a;
 }
 
 .btn-remove-item {
@@ -1522,15 +1546,67 @@
     letter-spacing: 0.5px;
   }
 
-  /* EDIT MODE INPUTS */
-  /* When editing, ensure the input doesn't squash the label */
-  .inv-table td input {
-    width: 60%;
-    /* Input takes 60% of width, Label takes the rest */
-    text-align: right;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+  /* EDIT MODE INPUTS ON TABLET */
+  .inv-table tr.row-editing td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+
+  .inv-table tr.row-editing td input.inv-edit-input {
+    width: 62%;
+    max-width: 320px;
+    text-align: left !important;
+    padding: 9px 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #0f172a;
+    background: #ffffff;
+    box-sizing: border-box;
+  }
+
+  .inv-table tr.row-editing td input.inv-edit-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  }
+
+  .inv-table tr.row-editing .input-with-prefix {
+    width: 62%;
+    max-width: 320px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .inv-table tr.row-editing .input-with-prefix input {
+    width: 100% !important;
+    text-align: left !important;
+    padding-left: 28px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+  }
+
+  .inv-table tr.row-editing .input-with-prefix .input-prefix {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 700;
+    color: #64748b;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .inv-table tr.row-editing td:last-child {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 8px;
+    padding-top: 14px;
+    justify-content: flex-end;
   }
 
   .inv-table td.inv-empty-cell {
@@ -1721,9 +1797,13 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 5px;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* Hide scrollbar for cleaner look */
+  padding: 2px 12px 6px 2px;
+  flex-wrap: nowrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .category-filter-bar::-webkit-scrollbar {
@@ -1731,21 +1811,32 @@ body {
 }
 
 .cat-filter-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
   background: white;
   border: 1px solid #E5E7EB;
   padding: 8px 16px;
   border-radius: 10px;
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
   cursor: pointer;
-  white-space: nowrap;
-  transition: 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.cat-filter-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .cat-filter-btn.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+  box-shadow: 0 3px 10px rgba(0, 163, 224, 0.35);
+  font-weight: 700;
 }
 
 /* =============================================
@@ -1920,14 +2011,15 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #0284c7;
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  padding: 2px 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #ffffff;
+  background: #0284c7;
+  border: 1px solid #0369a1;
+  padding: 3px 9px;
   border-radius: 9999px;
   line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.35);
 }
 
 .card-body {
@@ -1961,15 +2053,15 @@ body {
 
 .price-amount {
   font-size: 17px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  color: #0f172a !important;
   letter-spacing: -0.2px;
 }
 
 .price-unit {
   font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
+  color: #475569;
+  font-weight: 600;
 }
 
 .card-action {
@@ -2559,8 +2651,8 @@ body {
 
 .bill-item-price {
   font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  color: #0f172a !important;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2595,9 +2687,9 @@ body {
 }
 
 .bill-item-rate {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #64748b;
+  color: #334155;
 }
 
 .bill-footer {

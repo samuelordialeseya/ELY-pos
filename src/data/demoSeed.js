@@ -25,21 +25,30 @@ export const DEMO_PRODUCTS = [
   { id: "demo-24", name: "Talong (Eggplant)", price: 90, unit: "kg", category: "Vegetables" }
 ];
 
+export const getLocalDateKey = (d = new Date()) => {
+  const dateObj = typeof d === 'string' || typeof d === 'number' ? new Date(d) : d;
+  if (isNaN(dateObj.getTime())) return '';
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export function getDemoOrders() {
   const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = getLocalDateKey(now);
   const todayDisplay = now.toLocaleDateString();
 
   const yesterday = new Date(Date.now() - 86400000);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterdayStr = getLocalDateKey(yesterday);
   const yesterdayDisplay = yesterday.toLocaleDateString();
 
   const twoDaysAgo = new Date(Date.now() - 172800000);
-  const twoDaysAgoStr = twoDaysAgo.toISOString().split("T")[0];
+  const twoDaysAgoStr = getLocalDateKey(twoDaysAgo);
   const twoDaysAgoDisplay = twoDaysAgo.toLocaleDateString();
 
   const fourDaysAgo = new Date(Date.now() - 345600000);
-  const fourDaysAgoStr = fourDaysAgo.toISOString().split("T")[0];
+  const fourDaysAgoStr = getLocalDateKey(fourDaysAgo);
   const fourDaysAgoDisplay = fourDaysAgo.toLocaleDateString();
 
   return [
