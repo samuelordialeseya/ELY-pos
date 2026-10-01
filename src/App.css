@@ -4681,3 +4681,141 @@ body {
     opacity: 0.8;
   }
 }
+
+/* =============================================
+   SPECIAL ITEM FLAG — INVENTORY & MANIFEST
+   ============================================= */
+
+/* ── Flag Picker (Add Product form) ── */
+.flag-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.flag-pick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.flag-pick-btn:hover {
+  border-color: rgba(0,0,0,0.2);
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.flag-pick-btn.selected {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  color: #92400e;
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.2);
+}
+
+.flag-pick-btn span:first-child {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Inline compact picker for edit rows */
+.flag-picker-inline {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin-top: 0;
+  justify-content: center;
+}
+
+.flag-pick-btn.flag-pick-sm {
+  flex-direction: row;
+  padding: 4px 7px;
+  font-size: 16px;
+  gap: 0;
+  border-radius: 8px;
+}
+
+.flag-optional {
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* Full-width field spanning all grid columns */
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Flag Badge (Inventory table read-only row) ── */
+.inv-flag-badge {
+  font-size: 20px;
+  line-height: 1;
+  cursor: default;
+}
+
+.inv-flag-none {
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+/* ── Manifest Special Alert Banner ── */
+.manifest-flag-alert {
+  background: #fffbeb;
+  border: 1.5px solid #f59e0b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  color: #78350f;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.manifest-flag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.manifest-flag-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #fde68a;
+  color: #78350f;
+}
+
+.manifest-flag-pill.flag-cold  { background: #cffafe; color: #164e63; }
+.manifest-flag-pill.flag-bulky { background: #ede9fe; color: #4c1d95; }
+.manifest-flag-pill.flag-care  { background: #ffedd5; color: #7c2d12; }
+
+/* ── Per-Row Item Flag Badge (Manifest table) ── */
+.manifest-item-flag {
+  display: inline-block;
+  margin: 2px 4px 0 0;
+  padding: 1px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #fde68a;
+  color: #78350f;
+  vertical-align: middle;
+}
+
+.manifest-item-flag.flag-cold  { background: #cffafe; color: #164e63; }
+.manifest-item-flag.flag-bulky { background: #ede9fe; color: #4c1d95; }
+.manifest-item-flag.flag-care  { background: #ffedd5; color: #7c2d12; }

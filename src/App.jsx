@@ -177,8 +177,9 @@ function App() {
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState("");
   const [category, setCategory] = useState("");
+  const [specialFlag, setSpecialFlag] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [editFormData, setEditFormData] = useState({ name: "", price: "", unit: "", category: "" });
+  const [editFormData, setEditFormData] = useState({ name: "", price: "", unit: "", category: "", special_flag: "" });
 
   const [customer, setCustomer] = useState("");
   const [address, setAddress] = useState(""); 
@@ -359,17 +360,18 @@ function App() {
         price: parseFloat(price), 
         unit, 
         category: category || "Uncategorized",
+        special_flag: specialFlag || "",
         created_at: new Date().toISOString()
       };
       if (isDemoMode) {
         setFruits(prev => [{ id: `demo-prod-${Date.now()}`, ...newFruit }, ...prev]);
-        setName(""); setPrice(""); setUnit(""); setCategory("");
+        setName(""); setPrice(""); setUnit(""); setCategory(""); setSpecialFlag("");
         showToast("Added to Demo Catalog");
         return;
       }
       try {
         await addDoc(collection(db, prodCol()), newFruit);
-        setName(""); setPrice(""); setUnit(""); setCategory("");
+        setName(""); setPrice(""); setUnit(""); setCategory(""); setSpecialFlag("");
         showToast("Added to Inventory");
       } catch (error) {
         showToast("Error: " + error.message);
@@ -399,7 +401,8 @@ function App() {
       name: editFormData.name, 
       price: parseFloat(editFormData.price), 
       unit: editFormData.unit, 
-      category: editFormData.category 
+      category: editFormData.category,
+      special_flag: editFormData.special_flag || "",
     };
     if (isDemoMode) {
       setFruits(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
@@ -569,7 +572,8 @@ function App() {
       price: product.price, 
       quantity: roundedQty, 
       unit: product.unit, 
-      subtotal: Math.round(product.price * roundedQty * 100) / 100
+      subtotal: Math.round(product.price * roundedQty * 100) / 100,
+      special_flag: product.special_flag || "",
     };
 
     setCart(prev => [...prev, item]);
@@ -1813,6 +1817,29 @@ function App() {
                       </datalist>
                     </div>
                   </div>
+                  {/* ── Special Handling Flag Picker ── */}
+                  <div className="form-field-group form-field-full">
+                    <label>Special Handling Flag <span className="flag-optional">(optional — shows on delivery manifest)</span></label>
+                    <div className="flag-picker">
+                      {[
+                        { key: "fragile", emoji: "🥚", label: "Fragile" },
+                        { key: "cold",    emoji: "🧊", label: "Keep Cold" },
+                        { key: "bulky",   emoji: "📦", label: "Bulky" },
+                        { key: "care",    emoji: "⚠️",  label: "Handle Care" },
+                      ].map(fl => (
+                        <button
+                          type="button"
+                          key={fl.key}
+                          className={`flag-pick-btn ${specialFlag === fl.key ? "selected" : ""}`}
+                          onClick={() => setSpecialFlag(prev => prev === fl.key ? "" : fl.key)}
+                          title={fl.label}
+                        >
+                          <span>{fl.emoji}</span>
+                          <span>{fl.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <button type="submit" className="btn-save-inv">
                     <Plus size={16} />
                     <span>Add to Inventory</span>
@@ -1828,6 +1855,7 @@ function App() {
                       <th>Category</th>
                       <th>Price</th>
                       <th>Unit</th>
+                      <th style={{ textAlign: 'center' }}>Flag</th>
                       <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
@@ -1901,6 +1929,26 @@ function App() {
                                   onChange={e => setEditFormData({ ...editFormData, unit: e.target.value })}
                                 />
                               </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div className="flag-picker flag-picker-inline">
+                                  {[
+                                    { key: "fragile", emoji: "🥚" },
+                                    { key: "cold",    emoji: "🧊" },
+                                    { key: "bulky",   emoji: "📦" },
+                                    { key: "care",    emoji: "⚠️" },
+                                  ].map(fl => (
+                                    <button
+                                      type="button"
+                                      key={fl.key}
+                                      className={`flag-pick-btn flag-pick-sm ${editFormData.special_flag === fl.key ? "selected" : ""}`}
+                                      onClick={() => setEditFormData({ ...editFormData, special_flag: editFormData.special_flag === fl.key ? "" : fl.key })}
+                                      title={fl.key}
+                                    >
+                                      {fl.emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              </td>
                               <td style={{ textAlign: 'right' }}>
                                 <div className="inv-edit-actions">
                                   <button
@@ -1939,6 +1987,15 @@ function App() {
                               </td>
                               <td>
                                 <span className="inv-unit-tag">{f.unit}</span>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                {f.special_flag ? (
+                                  <span className={`inv-flag-badge flag-${f.special_flag}`} title={f.special_flag}>
+                                    {f.special_flag === "fragile" ? "🥚" :
+                                     f.special_flag === "cold"    ? "🧊" :
+                                     f.special_flag === "bulky"   ? "📦" : "⚠️"}
+                                  </span>
+                                ) : <span className="inv-flag-none">—</span>}
                               </td>
                               <td style={{ textAlign: 'right' }}>
                                 <div className="inv-row-actions">
@@ -2084,12 +2141,46 @@ function App() {
                   <h2>{storeName.toUpperCase()}'S RIDER MANIFEST</h2>
                   <div className="manifest-meta"><span>Date: {filterDate}</span><span>Rider: _________________</span></div>
                 </div>
+                {/* ── Special Items Alert Banner ── */}
+                {(() => {
+                  const FLAG_LABELS = { fragile: "🥚 Fragile", cold: "🧊 Keep Cold", bulky: "📦 Bulky", care: "⚠️ Handle Care" };
+                  const flagCounts = {};
+                  getSortedManifest().forEach(o => {
+                    (o.items || []).forEach(it => {
+                      if (it.special_flag) flagCounts[it.special_flag] = (flagCounts[it.special_flag] || 0) + 1;
+                    });
+                  });
+                  const entries = Object.entries(flagCounts);
+                  if (entries.length === 0) return null;
+                  return (
+                    <div className="manifest-flag-alert">
+                      <strong>⚠️ Special Items in This Batch:</strong>
+                      <div className="manifest-flag-list">
+                        {entries.map(([key, count]) => (
+                          <span key={key} className={`manifest-flag-pill flag-${key}`}>
+                            {FLAG_LABELS[key]} — {count} order{count > 1 ? "s" : ""}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <table className="manifest-table">
                   <thead><tr><th>CUSTOMER</th><th>ADDRESS</th><th style={{textAlign:'right'}}>AMOUNT</th></tr></thead>
                   <tbody>
                     {getSortedManifest().map(o => (
                       <tr key={o.id}>
-                        <td><strong>{o.customer_name ? o.customer_name.toUpperCase() : "CUSTOMER"}</strong></td>
+                        <td>
+                          <strong>{o.customer_name ? o.customer_name.toUpperCase() : "CUSTOMER"}</strong>
+                          {(o.items || []).filter(it => it.special_flag).map((it, i) => {
+                            const emoji = it.special_flag === "fragile" ? "🥚" : it.special_flag === "cold" ? "🧊" : it.special_flag === "bulky" ? "📦" : "⚠️";
+                            return (
+                              <span key={i} className={`manifest-item-flag flag-${it.special_flag}`}>
+                                {emoji} {it.name}
+                              </span>
+                            );
+                          })}
+                        </td>
                         <td>{o.address.startsWith('4') || o.address.startsWith('3') || o.address.startsWith('2') || o.address.startsWith('1') ? `Phase ${o.address}` : o.address}</td>
                         <td style={{textAlign:'right', fontWeight:'800'}}>₱{o.total.toFixed(2)}</td>
                       </tr>

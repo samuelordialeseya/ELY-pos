@@ -34,7 +34,14 @@ export function AuthProvider({ children }) {
   const isOwnerAccount = !!(user && user.email === OWNER_EMAIL);
 
   useEffect(() => {
+    // Safety timeout: if Firebase Auth never responds (offline, iPad sleep,
+    // network blocked), force loading=false after 8 s so the app doesn't hang.
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 8000);
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      clearTimeout(timeout);
       setUser(firebaseUser);
       if (firebaseUser) {
         // Real user signed in — clear any lingering demo flag
@@ -44,7 +51,10 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   const loginWithEmail = async (email, password, rememberMe = false) => {
