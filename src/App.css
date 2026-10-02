@@ -3161,8 +3161,8 @@ body {
 
 /* --- AUTOMATIC RESPONSIVENESS (The Magic Part) --- */
 
-/* 1. TABLET LANDSCAPE (iPad 9.7", 10.2", 10.9", 11", 12.9" Landscape up to 1180px) */
-@media (max-width: 1180px) {
+/* 1. TABLET LANDSCAPE (iPad 9.7", 10.2", 10.9", 11", 12.9" Landscape up to 1220px) */
+@media (max-width: 1220px) {
   .pos-layout {
     grid-template-columns: 84px 1fr 310px;
   }
@@ -3440,11 +3440,14 @@ body {
    DASHBOARD SCREEN STYLES (POLISHED)
    ============================================= */
 
-.dashboard-screen {
+.dashboard-screen,
+.dash-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-bottom: 32px;
+  gap: 24px;
+  padding-bottom: 36px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* --- Range Selector & Action Bar --- */
@@ -3614,7 +3617,8 @@ body {
 .dash-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 20px;
+  width: 100%;
 }
 
 .dash-metric-card {
@@ -3630,6 +3634,7 @@ body {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   box-sizing: border-box;
+  min-width: 0;
 }
 
 .dash-metric-card:hover {
@@ -4104,17 +4109,27 @@ body {
   color: #00A3E0;
 }
 
-/* Tablet & iPad Responsiveness */
-@media (max-width: 1180px) {
+/* Tablet & iPad Responsiveness (iPad 9.7", 10.2", 10.9", 11", 12.9" Portrait & Landscape) */
+@media (max-width: 1220px) {
+  .dashboard-screen,
+  .dash-container {
+    gap: 20px;
+    padding-bottom: 30px;
+  }
+
   .dash-metric-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 18px;
+    width: 100%;
   }
 
   .dash-metric-card {
-    padding: 16px 18px;
-    gap: 12px;
-    min-height: 110px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    gap: 14px;
+    min-height: 116px;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .dash-metric-value {
@@ -4123,37 +4138,32 @@ body {
 
   .dash-panels {
     grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .dashboard-screen {
-    gap: 16px;
-  }
-}
-
-/* iPad landscape — sidebar ~220px, content ~800px */
-@media (min-width: 769px) and (max-width: 1180px) {
-  .dash-metric-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .dash-metric-card {
-    padding: 18px 20px;
-    border-radius: 14px;
-    min-height: 120px;
-    box-sizing: border-box;
+    gap: 20px;
+    width: 100%;
   }
 }
 
 @media (max-width: 768px) {
+  .dashboard-screen,
+  .dash-container {
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+
   .dash-metric-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
+    width: 100%;
   }
 
   .dash-metric-card {
     min-height: 100px;
+    padding: 16px 18px;
+    min-width: 0;
+  }
+
+  .dash-panels {
+    gap: 16px;
   }
 
   .dash-range-bar {

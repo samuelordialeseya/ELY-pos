@@ -47,7 +47,7 @@ export default function AnalyticsDashboard({
   } = aggregates;
 
   return (
-    <div className="dash-container">
+    <div className="dashboard-screen dash-container">
       {/* Range Bar */}
       <div className="dash-range-bar">
         <div className="dash-range-left">
