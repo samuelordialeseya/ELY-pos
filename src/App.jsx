@@ -1421,9 +1421,10 @@ function App() {
                   className="weighin-confirm-btn"
                   onClick={handleConfirmWeighIn}
                   disabled={!parseFloat(modalQtyStr) || parseFloat(modalQtyStr) <= 0}
+                  style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}
                 >
-                  <Check size={18} weight="bold" />
-                  <span>Add to Cart · ₱{((parseFloat(modalQtyStr) || 0) * weighInProduct.price).toFixed(2)}</span>
+                  <Check size={18} weight="bold" style={{color:'#ffffff'}} />
+                  <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>Add to Cart · ₱{((parseFloat(modalQtyStr) || 0) * weighInProduct.price).toFixed(2)}</span>
                 </button>
               </div>
             </div>
@@ -1475,9 +1476,10 @@ function App() {
                   className="dash-quick-sale-btn"
                   onClick={() => setView('pos')}
                   title="Open Point of Sale register"
+                  style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}
                 >
-                  <ShoppingCart size={15} />
-                  <span>New Sale</span>
+                  <ShoppingCart size={15} style={{color:'#ffffff'}} />
+                  <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>New Sale</span>
                 </button>
               </div>
             </div>
@@ -1840,9 +1842,9 @@ function App() {
                       ))}
                     </div>
                   </div>
-                  <button type="submit" className="btn-save-inv">
-                    <Plus size={16} />
-                    <span>Add to Inventory</span>
+                  <button type="submit" className="btn-save-inv" style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>
+                    <Plus size={16} style={{color:'#ffffff'}} />
+                    <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>Add to Inventory</span>
                   </button>
                 </form>
               </div>
@@ -1956,18 +1958,20 @@ function App() {
                                     className="btn-save-row"
                                     onClick={() => saveEdit(f.id)}
                                     title="Save changes"
+                                    style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}
                                   >
-                                    <Check size={14} />
-                                    <span>Save</span>
+                                    <Check size={14} style={{color:'#ffffff'}} />
+                                    <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>Save</span>
                                   </button>
                                   <button
                                     type="button"
                                     className="btn-cancel-row"
                                     onClick={() => setEditingId(null)}
                                     title="Cancel editing"
+                                    style={{color:'#1e293b',WebkitTextFillColor:'#1e293b'}}
                                   >
-                                    <X size={14} />
-                                    <span>Cancel</span>
+                                    <X size={14} style={{color:'#1e293b'}} />
+                                    <span style={{color:'#1e293b',WebkitTextFillColor:'#1e293b'}}>Cancel</span>
                                   </button>
                                 </div>
                               </td>
@@ -2310,14 +2314,15 @@ function App() {
               >
                 Clear
               </button>
-              <button
+                <button
                 type="button"
                 className="btn-checkout"
                 onClick={completeOrder}
                 disabled={cart.length === 0 || isCheckingOut}
+                style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}
               >
-                <CheckCircle size={18} weight="bold" />
-                <span>{isCheckingOut ? "Processing..." : "Complete Transaction"}</span>
+                <CheckCircle size={18} weight="bold" style={{color:'#ffffff'}} />
+                <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>{isCheckingOut ? "Processing..." : "Complete Transaction"}</span>
               </button>
             </div>
           </div>
@@ -2338,9 +2343,10 @@ function App() {
               type="button" 
               className="btn-undo-checkout"
               onClick={() => handleUndoOrder(undoBanner.id)}
+              style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}
             >
-              <ArrowCounterClockwise size={14} weight="bold" />
-              <span>Undo Checkout</span>
+              <ArrowCounterClockwise size={14} weight="bold" style={{color:'#ffffff'}} />
+              <span style={{color:'#ffffff',WebkitTextFillColor:'#ffffff'}}>Undo Checkout</span>
             </button>
             <button 
               type="button" 
