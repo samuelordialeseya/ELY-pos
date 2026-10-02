@@ -1698,6 +1698,9 @@
 /* App.css - The "Silver Bullet" Fix */
 
 :root {
+  /* Force light mode — prevents iOS/Safari dark mode from inverting colors on iPad */
+  color-scheme: light only;
+
   --primary: #00A3E0;
   --primary-light: #E0F7FF;
   --secondary: #1F2937;
@@ -1721,10 +1724,19 @@
   padding: 0;
 }
 
+html {
+  /* Explicitly lock to light mode so iPad dark mode never applies */
+  color-scheme: light only;
+  background: #F9FAFB;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background: var(--bg);
   color: var(--text-main);
+  /* Hard-coded fallback colors so dark mode can never override them */
+  background-color: #F9FAFB;
+  color: #111827;
   overflow-x: hidden;
   overflow-y: auto;
   width: 100%;
