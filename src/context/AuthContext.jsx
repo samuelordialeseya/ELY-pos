@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { 
   auth, 
   db,
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
 
   // Derived: is the currently signed-in user Dad's store owner?
   // Hard-coded to samuelordialesyt@gmail.com — always connects to root Firestore collections.
-  const isOwnerAccount = !!(user && user.email === OWNER_EMAIL);
+  const isOwnerAccount = useMemo(() => !!(user && user.email === OWNER_EMAIL), [user]);
 
   useEffect(() => {
     // Safety timeout: if Firebase Auth never responds (offline, iPad sleep,

@@ -29,7 +29,8 @@ export default function SettingsPage({
   const handleNameBlur = async () => {
     const trimmed = localName.trim() || "My Store";
     setLocalName(trimmed);
-    if (onUpdateStoreName) {
+    // Only write if the name actually changed
+    if (trimmed !== storeName && onUpdateStoreName) {
       await onUpdateStoreName(trimmed);
     }
     setShowSavedConfirm(true);

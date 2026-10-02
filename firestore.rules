@@ -22,6 +22,9 @@ service cloud.firestore {
     match /app_settings/{document=**} {
       allow read, write: if isLegacyStoreUser();
     }
+    match /daily_stats/{document=**} {
+      allow read, write: if isLegacyStoreUser();
+    }
 
     // Per-user subcollections: Isolated store data for any registered platform user
     match /users/{userId}/{document=**} {
