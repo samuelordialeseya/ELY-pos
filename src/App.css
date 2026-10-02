@@ -294,7 +294,8 @@
 
 .btn-empty-add {
   background: var(--primary);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   padding: 9px 18px;
   border-radius: 10px;
   border: none;
@@ -303,6 +304,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
+}
+
+.btn-empty-add span,
+.btn-empty-add svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-empty-add:hover {
@@ -710,7 +717,7 @@
 
 .btn-save-inv {
   background: var(--primary);
-  color: white;
+  color: #ffffff !important;
   width: 100%;
   padding: 12px 20px;
   font-family: inherit;
@@ -725,6 +732,14 @@
   gap: 8px;
   box-shadow: 0 4px 12px rgba(0, 163, 224, 0.3);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-text-fill-color: #ffffff;
+}
+
+.btn-save-inv span,
+.btn-save-inv svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  stroke: currentColor;
 }
 
 .btn-save-inv:hover {
@@ -876,7 +891,8 @@
 
 .btn-save-row {
   background: #059669;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: 1.5px solid #047857;
   padding: 8px 18px;
   border-radius: 8px;
@@ -891,13 +907,23 @@
   transition: all 0.15s ease;
 }
 
+.btn-save-row span,
+.btn-save-row svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  stroke: currentColor;
+}
+
 .btn-save-row:hover {
   background: #047857;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-cancel-row {
   background: #ffffff;
-  color: #1e293b;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b;
   border: 1.5px solid #cbd5e1;
   padding: 8px 18px;
   border-radius: 8px;
@@ -912,9 +938,18 @@
   transition: all 0.15s ease;
 }
 
+.btn-cancel-row span,
+.btn-cancel-row svg {
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b;
+  stroke: currentColor;
+}
+
 .btn-cancel-row:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b;
 }
 
 /* Empty States */
@@ -1279,7 +1314,8 @@
 
 .btn-download-manifest {
   background: var(--success);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 10px 20px;
   border-radius: 12px;
@@ -1289,6 +1325,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn-download-manifest span,
+.btn-download-manifest svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .status-delivered-icon {
@@ -1412,7 +1454,8 @@
 
 .btn-checkout {
   background: var(--primary);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   width: 100%;
   padding: 18px;
   font-weight: 700;
@@ -1423,6 +1466,12 @@
   /* Checkout Button Glow */
   box-shadow: 0 8px 20px rgba(0, 163, 224, 0.4);
   transition: 0.2s;
+}
+
+.btn-checkout span,
+.btn-checkout svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-checkout:active {
@@ -1845,10 +1894,17 @@ body {
 
 .cat-filter-btn.active {
   background: var(--primary);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border-color: var(--primary);
   box-shadow: 0 3px 10px rgba(0, 163, 224, 0.35);
   font-weight: 700;
+}
+
+.cat-filter-btn.active span,
+.cat-filter-btn.active svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 /* =============================================
@@ -2405,7 +2461,8 @@ body {
   border-radius: 12px;
   border: none;
   background: var(--primary);
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   font-size: 15px;
   font-weight: 700;
   display: flex;
@@ -2417,8 +2474,16 @@ body {
   transition: all 0.15s ease;
 }
 
+.weighin-confirm-btn span,
+.weighin-confirm-btn svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+}
+
 .weighin-confirm-btn:hover:not(:disabled) {
   background: #0284c7;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .weighin-confirm-btn:disabled {
@@ -2469,7 +2534,8 @@ body {
 .btn-clear-pos-filters {
   margin-top: 8px;
   background: var(--primary);
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 10px 20px;
   border-radius: 10px;
@@ -2479,6 +2545,12 @@ body {
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(0, 163, 224, 0.25);
   transition: all 0.15s ease;
+}
+
+.btn-empty-add span, .btn-empty-add svg,
+.btn-clear-pos-filters span, .btn-clear-pos-filters svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-clear-pos-filters {
@@ -2764,7 +2836,8 @@ body {
 /* Strictly Emerald Green (#10B981) per DESIGN.md */
 .btn-checkout {
   background: #10B981;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   border-radius: 12px;
   padding: 14px 18px;
@@ -2780,10 +2853,18 @@ body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.btn-checkout span,
+.btn-checkout svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+}
+
 .btn-checkout:hover:not(:disabled) {
   background: #059669;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
   transform: translateY(-1px);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-checkout:active:not(:disabled) {
@@ -2792,7 +2873,8 @@ body {
 
 .btn-checkout:disabled {
   background: #cbd5e1;
-  color: #94a3b8;
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8;
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
@@ -3150,9 +3232,16 @@ body {
 
 .dash-range-btn.active {
   background: #00A3E0;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(0, 163, 224, 0.3);
+}
+
+.dash-range-btn.active span,
+.dash-range-btn.active svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .dash-custom-wrap {
@@ -3226,7 +3315,8 @@ body {
   align-items: center;
   gap: 8px;
   background: #00A3E0;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 10px 18px;
   min-height: 40px;
@@ -3237,6 +3327,12 @@ body {
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(0, 163, 224, 0.28);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dash-quick-sale-btn span,
+.dash-quick-sale-btn svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .dash-quick-sale-btn:hover {
@@ -3985,7 +4081,8 @@ body {
 
 .btn-parse-run {
   background: var(--primary);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 14px;
   border-radius: 12px;
@@ -3997,6 +4094,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.btn-parse-run span,
+.btn-parse-run svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-parse-run:hover {
@@ -4126,7 +4229,8 @@ body {
 
 .btn-apply-parsed {
   background: var(--success);
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 12px 24px;
   border-radius: 12px;
@@ -4137,6 +4241,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.btn-apply-parsed span,
+.btn-apply-parsed svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-apply-parsed:hover {
@@ -4612,7 +4722,8 @@ body {
   align-items: center;
   gap: 6px;
   background: #2563EB;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
   border: none;
   padding: 7px 12px;
   border-radius: 9px;
@@ -4623,8 +4734,16 @@ body {
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
+.btn-undo-checkout span,
+.btn-undo-checkout svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+}
+
 .btn-undo-checkout:hover {
   background: #1D4ED8;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
 }
 
 .btn-undo-checkout:active {
