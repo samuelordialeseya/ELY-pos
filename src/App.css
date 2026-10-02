@@ -4108,16 +4108,52 @@ body {
 @media (max-width: 1180px) {
   .dash-metric-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .dash-metric-card {
+    padding: 16px 18px;
+    gap: 12px;
+    min-height: 110px;
+  }
+
+  .dash-metric-value {
+    font-size: 22px;
   }
 
   .dash-panels {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .dashboard-screen {
+    gap: 16px;
+  }
+}
+
+/* iPad landscape — sidebar ~220px, content ~800px */
+@media (min-width: 769px) and (max-width: 1180px) {
+  .dash-metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .dash-metric-card {
+    padding: 18px 20px;
+    border-radius: 14px;
+    min-height: 120px;
+    box-sizing: border-box;
   }
 }
 
 @media (max-width: 768px) {
   .dash-metric-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dash-metric-card {
+    min-height: 100px;
   }
 
   .dash-range-bar {
