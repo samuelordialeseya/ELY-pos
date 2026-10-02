@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import "./App.css";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import html2canvas from "html2canvas";
 import { driver } from "driver.js";
