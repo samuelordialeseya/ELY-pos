@@ -57,9 +57,10 @@ export default function ProductCatalog({
     <div className="product-grid">
       {filteredFruits.map(f => {
         const catTheme = getCategoryTheme(f.category, f.name);
-        const cartQty = cart
+        const rawCartQty = cart
           .filter(c => c.name === f.name)
           .reduce((acc, c) => acc + c.quantity, 0);
+        const cartQty = Math.round(rawCartQty * 1000) / 1000;
 
         return (
           <div

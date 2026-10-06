@@ -293,6 +293,13 @@ export default function App() {
     }
   }, [filterDate, activeOrders, user, isOwnerAccount, isDemoMode, todayKey]);
 
+  // Sync dashboard custom date filter with historical orders fetcher
+  useEffect(() => {
+    if (dashboardRange === "custom" && dashboardCustomDate && dashboardCustomDate !== filterDate) {
+      setFilterDate(dashboardCustomDate);
+    }
+  }, [dashboardRange, dashboardCustomDate, filterDate]);
+
   // --- DASHBOARD AGGREGATES ---
   const dashAggregates = useMemo(() => {
     const dashToday = getLocalDateKey(new Date());
@@ -816,7 +823,10 @@ export default function App() {
             dashboardRange={dashboardRange}
             setDashboardRange={setDashboardRange}
             dashboardCustomDate={dashboardCustomDate}
-            setDashboardCustomDate={setDashboardCustomDate}
+            setDashboardCustomDate={(val) => {
+              setDashboardCustomDate(val);
+              setFilterDate(val);
+            }}
             aggregates={dashAggregates}
             orders={activeOrders}
             onNavigateToPos={() => setView('pos')}

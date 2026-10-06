@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ArrowClockwise, Compass, ArrowsClockwise, SignOut } from "@phosphor-icons/react";
 import ReceiptTemplateEditor from "./ReceiptTemplateEditor";
 import "./SettingsPage.css";
@@ -16,15 +16,16 @@ export default function SettingsPage({
   onSignOut
 }) {
   const [localName, setLocalName] = useState(storeName || "My Store");
+  const [prevStoreName, setPrevStoreName] = useState(storeName);
+  if (storeName !== prevStoreName) {
+    setPrevStoreName(storeName);
+    setLocalName(storeName || "My Store");
+  }
   const [storeType, setStoreType] = useState(
     () => localStorage.getItem("elypos_store_type") || "Fresh Produce"
   );
   const [showSavedConfirm, setShowSavedConfirm] = useState(false);
   const [showTypeSaved, setShowTypeSaved] = useState(false);
-
-  useEffect(() => {
-    setLocalName(storeName || "My Store");
-  }, [storeName]);
 
   const handleNameBlur = async () => {
     const trimmed = localName.trim() || "My Store";

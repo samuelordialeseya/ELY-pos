@@ -32,7 +32,9 @@ export default function SetupWizard({ isOpen, onComplete, onSkip }) {
   const [slideKey, setSlideKey] = useState(1);
   const inputRef = useRef(null);
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setStep(1);
       setSlideKey(1);
@@ -41,7 +43,7 @@ export default function SetupWizard({ isOpen, onComplete, onSkip }) {
         setTypedName(existingName);
       }
     }
-  }, [isOpen]);
+  }
 
   useEffect(() => {
     if (isOpen && step === 1 && inputRef.current) {

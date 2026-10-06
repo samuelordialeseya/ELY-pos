@@ -82,7 +82,7 @@ export default function InstantReceiptModal({
 
             <div className="receipt-body">
               <div className="receipt-left">
-                <div className="h-customer-name"><strong>{order.customer_name}</strong></div>
+                <div className="h-customer-name"><strong>{order.customer_name || 'Walk-in Customer'}</strong></div>
                 <div className="h-meta">{order.display_date} | {order.time}</div>
                 <div className="h-items-list">
                   {(order.items || []).map(it => (

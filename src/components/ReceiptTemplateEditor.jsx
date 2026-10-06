@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Receipt, Check, ArrowCounterClockwise, Sparkle } from "@phosphor-icons/react";
 import { DEFAULT_RECEIPT_CONFIG, formatReceiptText } from "../data/receiptConfig";
 import "./ReceiptTemplateEditor.css";
@@ -12,17 +12,18 @@ export default function ReceiptTemplateEditor({
     ...DEFAULT_RECEIPT_CONFIG,
     ...(receiptConfig || {})
   }));
-
-  const [savedStatus, setSavedStatus] = useState(false);
-
-  useEffect(() => {
+  const [prevReceiptConfig, setPrevReceiptConfig] = useState(receiptConfig);
+  if (receiptConfig !== prevReceiptConfig) {
+    setPrevReceiptConfig(receiptConfig);
     if (receiptConfig) {
       setLocalConfig({
         ...DEFAULT_RECEIPT_CONFIG,
         ...receiptConfig
       });
     }
-  }, [receiptConfig]);
+  }
+
+  const [savedStatus, setSavedStatus] = useState(false);
 
   const handleChange = (field, value) => {
     setLocalConfig((prev) => ({

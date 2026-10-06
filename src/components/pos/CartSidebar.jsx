@@ -1,5 +1,6 @@
 import React from "react";
 import { ShoppingCart, X, CheckCircle } from "@phosphor-icons/react";
+import { formatPeso } from "../../utils/themeUtils";
 
 export default function CartSidebar({
   cart = [],
@@ -59,7 +60,7 @@ export default function CartSidebar({
               <div className="bill-row-top">
                 <strong className="bill-item-title" title={item.name}>{item.name}</strong>
                 <div className="bill-row-top-right">
-                  <span className="bill-item-price">₱{item.subtotal.toFixed(2)}</span>
+                  <span className="bill-item-price">{formatPeso(item.subtotal)}</span>
                   <button
                     type="button"
                     className="btn-remove-item"
@@ -73,7 +74,7 @@ export default function CartSidebar({
               </div>
               <div className="bill-row-bottom">
                 <span className="bill-item-rate">
-                  ₱{item.price.toFixed(2)} / {item.unit}
+                  {formatPeso(item.price)} / {item.unit}
                 </span>
                 <span className="bill-item-qty-badge">
                   {item.quantity} <span className="qty-unit">{item.unit}</span>
@@ -87,7 +88,7 @@ export default function CartSidebar({
       <div className="bill-footer">
         <div className="total-line">
           <span className="total-label">Total Amount</span>
-          <span className="total-val">₱{totalAmount.toFixed(2)}</span>
+          <span className="total-val">{formatPeso(totalAmount)}</span>
         </div>
         <div className="bill-footer-buttons">
           <button
