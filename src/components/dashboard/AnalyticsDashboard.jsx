@@ -13,6 +13,7 @@ import {
   Truck 
 } from "@phosphor-icons/react";
 import { formatPeso } from "../../utils/themeUtils";
+import { isDeliveryOrder } from "../../utils/moneyUtils";
 
 export default function AnalyticsDashboard({
   dashboardRange,
@@ -20,31 +21,33 @@ export default function AnalyticsDashboard({
   dashboardCustomDate,
   setDashboardCustomDate,
   aggregates,
-  orders = [],
   onNavigateToPos,
   onNavigateToOrders
 }) {
   const rangeOptions = [
-    { key: 'today', label: 'Today' },
-    { key: 'week', label: '7 Days' },
-    { key: 'month', label: 'This Month' }
+    { key: "today", label: "Today" },
+    { key: "week", label: "7 Days" },
+    { key: "month", label: "This Month" }
   ];
 
   const dashRangeLabel = 
-    dashboardRange === 'today' ? 'Today' : 
-    dashboardRange === 'week' ? 'This Week (7 Days)' : 
-    dashboardRange === 'month' ? 'This Month' : 
-    (dashboardCustomDate || 'Selected Date');
+    dashboardRange === "today" ? "Today" : 
+    dashboardRange === "week" ? "This Week (7 Days)" : 
+    dashboardRange === "month" ? "This Month" : 
+    (dashboardCustomDate || "Selected Date");
 
   const {
     revenue = 0,
     txCount = 0,
     avg = 0,
     itemsSold = 0,
+    deliveryCount = 0,
+    walkInCount = 0,
+    totalProductLines = 0,
     topSellers = [],
     maxSellerRev = 1,
     recentOrders = []
-  } = aggregates;
+  } = aggregates || {};
 
   return (
     <div className="dashboard-screen dash-container">
@@ -57,7 +60,7 @@ export default function AnalyticsDashboard({
               <button
                 key={r.key}
                 type="button"
-                className={`dash-range-btn ${dashboardRange === r.key ? 'active' : ''}`}
+                className={`dash-range-btn ${dashboardRange === r.key ? "active" : ""}`}
                 onClick={() => setDashboardRange(r.key)}
               >
                 {r.label}
@@ -68,11 +71,11 @@ export default function AnalyticsDashboard({
               <input
                 type="date"
                 aria-label="Filter by specific date"
-                className={`date-input dash-date-pick ${dashboardRange === 'custom' ? 'active' : ''}`}
+                className={`date-input dash-date-pick ${dashboardRange === "custom" ? "active" : ""}`}
                 value={dashboardCustomDate}
                 onChange={e => { 
                   setDashboardCustomDate(e.target.value); 
-                  setDashboardRange('custom'); 
+                  setDashboardRange("custom"); 
                 }}
               />
             </div>
@@ -89,10 +92,10 @@ export default function AnalyticsDashboard({
             className="dash-quick-sale-btn"
             onClick={onNavigateToPos}
             title="Open Point of Sale register"
-            style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
+            style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
           >
-            <ShoppingCart size={15} style={{ color: '#ffffff' }} />
-            <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>New Sale</span>
+            <ShoppingCart size={15} style={{ color: "#ffffff" }} />
+            <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>New Sale</span>
           </button>
         </div>
       </div>
@@ -110,8 +113,8 @@ export default function AnalyticsDashboard({
             <div className="dash-metric-value">{formatPeso(revenue)}</div>
             <div className="dash-metric-hint">
               {txCount > 0 
-                ? `${txCount} completed ${txCount === 1 ? 'sale' : 'sales'}`
-                : 'No transactions yet'}
+                ? `${txCount} completed ${txCount === 1 ? "sale" : "sales"}`
+                : "No transactions yet"}
             </div>
           </div>
         </div>
@@ -127,8 +130,8 @@ export default function AnalyticsDashboard({
             <div className="dash-metric-value">{txCount}</div>
             <div className="dash-metric-hint">
               {txCount > 0
-                ? `${recentOrders.filter(o => o.order_type === 'delivery').length} delivery · ${recentOrders.filter(o => o.order_type !== 'delivery').length} in-store`
-                : 'Awaiting register checkouts'}
+                ? `${deliveryCount} delivery · ${walkInCount} in-store`
+                : "Awaiting register checkouts"}
             </div>
           </div>
         </div>
@@ -143,7 +146,7 @@ export default function AnalyticsDashboard({
           <div className="dash-metric-card-bottom">
             <div className="dash-metric-value">{formatPeso(avg)}</div>
             <div className="dash-metric-hint">
-              {txCount > 0 ? 'Per customer ticket' : 'Requires at least 1 order'}
+              {txCount > 0 ? "Per customer ticket" : "Requires at least 1 order"}
             </div>
           </div>
         </div>
@@ -161,8 +164,8 @@ export default function AnalyticsDashboard({
             </div>
             <div className="dash-metric-hint">
               {itemsSold > 0 
-                ? `Units across ${orders.reduce((s, o) => s + (o.items || []).length, 0)} product lines`
-                : 'No items scanned'}
+                ? `Units across ${totalProductLines} product lines`
+                : "No items scanned"}
             </div>
           </div>
         </div>
@@ -207,7 +210,7 @@ export default function AnalyticsDashboard({
                 return (
                   <div key={item.name} className="dash-seller-row">
                     <div className={`dash-seller-rank rank-${i + 1}`}>
-                      {i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : i + 1}
+                      {i === 0 ? "1" : i === 1 ? "2" : i === 2 ? "3" : i + 1}
                     </div>
                     <div className="dash-seller-info">
                       <div className="dash-seller-info-top">
@@ -215,11 +218,16 @@ export default function AnalyticsDashboard({
                         <span className="dash-seller-rev">{formatPeso(item.revenue)}</span>
                       </div>
                       <div className="dash-seller-info-sub">
-                        <span className="dash-seller-qty">{formattedQty} {item.unit || 'units'} sold</span>
+                        <span className="dash-seller-qty">{formattedQty} {item.unit || "units"} sold</span>
                         <span className="dash-seller-pct">{sharePct}% of top volume</span>
                       </div>
                       <div className="dash-seller-bar-track">
-                        <div className="dash-seller-bar-fill" style={{ width: `${Math.max(8, sharePct)}%` }} />
+                        <div
+                          className="dash-seller-bar-fill"
+                          style={{
+                            transform: `scaleX(${Math.max(8, Math.min(100, sharePct)) / 100})`
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -269,7 +277,7 @@ export default function AnalyticsDashboard({
           ) : (
             <div className="dash-recent-list">
               {recentOrders.map(o => {
-                const isDelivery = o.order_type === 'delivery';
+                const isDelivery = isDeliveryOrder(o);
                 return (
                   <div 
                     key={o.id} 
@@ -279,7 +287,7 @@ export default function AnalyticsDashboard({
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => { 
-                      if (e.key === 'Enter' || e.key === ' ') onNavigateToOrders(); 
+                      if (e.key === "Enter" || e.key === " ") onNavigateToOrders(); 
                     }}
                   >
                     <div className="dash-recent-avatar">
@@ -287,15 +295,15 @@ export default function AnalyticsDashboard({
                     </div>
                     <div className="dash-recent-info">
                       <div className="dash-recent-top-line">
-                        <span className="dash-recent-name">{o.customer_name || 'Walk-in Customer'}</span>
+                        <span className="dash-recent-name">{o.customer_name || "Walk-in Customer"}</span>
                         <span className="dash-recent-total">{formatPeso(o.total || 0)}</span>
                       </div>
                       <div className="dash-recent-sub-line">
-                        <span className={`dash-recent-type-badge ${isDelivery ? 'badge-delivery' : 'badge-pos'}`}>
-                          {isDelivery ? 'Delivery' : 'POS'}
+                        <span className={`dash-recent-type-badge ${isDelivery ? "badge-delivery" : "badge-pos"}`}>
+                          {isDelivery ? "Delivery" : "POS"}
                         </span>
                         <span className="dash-recent-meta">
-                          {(o.items || []).length} { (o.items || []).length === 1 ? 'item' : 'items'} · {o.display_date || o.raw_date}
+                          {(o.items || []).length} {(o.items || []).length === 1 ? "item" : "items"} · {o.display_date || o.raw_date}
                         </span>
                       </div>
                     </div>

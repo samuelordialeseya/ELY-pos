@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseClient";
 import { getStorePaths } from "./dbPaths";
+import { roundCentavos, roundWeight, isDeliveryOrder } from "../utils/moneyUtils";
 
 /**
  * Pre-aggregates daily POS transaction metrics into compact summary documents (daily_stats/{dateKey}).
@@ -17,22 +18,24 @@ import { getStorePaths } from "./dbPaths";
  */
 
 export function prepareSaleStatsBatch(batch, statsPath, dateKey, totalAmount, itemsCount) {
+  if (!dateKey) return;
   const statsDocRef = doc(db, statsPath, dateKey);
   batch.set(statsDocRef, {
     date: dateKey,
-    revenue: increment(Number(totalAmount) || 0),
+    revenue: increment(roundCentavos(totalAmount)),
     orders_count: increment(1),
-    items_sold: increment(Number(itemsCount) || 0),
+    items_sold: increment(roundWeight(itemsCount)),
     updated_at: serverTimestamp()
   }, { merge: true });
 }
 
 export function prepareRollbackStatsBatch(batch, statsPath, dateKey, totalAmount, itemsCount) {
+  if (!dateKey) return;
   const statsDocRef = doc(db, statsPath, dateKey);
   batch.set(statsDocRef, {
-    revenue: increment(-(Number(totalAmount) || 0)),
+    revenue: increment(-roundCentavos(totalAmount)),
     orders_count: increment(-1),
-    items_sold: increment(-(Number(itemsCount) || 0)),
+    items_sold: increment(-roundWeight(itemsCount)),
     updated_at: serverTimestamp()
   }, { merge: true });
 }
@@ -42,7 +45,7 @@ export function prepareRollbackStatsBatch(batch, statsPath, dateKey, totalAmount
  * Results are automatically cached in IndexedDB.
  */
 export async function fetchStatsRange(user, isOwnerAccount, startDate, endDate) {
-  if (!user) return [];
+  if (!user || !startDate || !endDate) return [];
   const { statsPath } = getStorePaths(user, isOwnerAccount);
   
   try {
@@ -62,32 +65,50 @@ export async function fetchStatsRange(user, isOwnerAccount, startDate, endDate) 
 }
 
 /**
- * Computes dashboard aggregates directly from an array of orders.
- * Used for demo mode or as fallback when pre-aggregated daily docs don't exist yet.
+ * Computes dashboard aggregates directly from an array of orders with centavo-exact math.
  */
 export function computeAggregatesFromOrders(orders) {
-  const safeOrders = orders || [];
-  const revenue = safeOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const revenue = roundCentavos(
+    safeOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
+  );
   const txCount = safeOrders.length;
-  const avg = txCount > 0 ? revenue / txCount : 0;
-  const itemsSold = safeOrders.reduce((sum, o) => {
-    return sum + (o.items || []).reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
-  }, 0);
+  const avg = txCount > 0 ? roundCentavos(revenue / txCount) : 0;
+  const itemsSold = roundWeight(
+    safeOrders.reduce((sum, o) => {
+      return sum + (o.items || []).reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+    }, 0)
+  );
+
+  let deliveryCount = 0;
+  let walkInCount = 0;
+  let totalProductLines = 0;
 
   const itemMap = {};
   safeOrders.forEach(o => {
-    (o.items || []).forEach(it => {
-      const key = it.name || 'Unknown';
+    if (isDeliveryOrder(o)) {
+      deliveryCount += 1;
+    } else {
+      walkInCount += 1;
+    }
+
+    const items = o.items || [];
+    totalProductLines += items.length;
+
+    items.forEach(it => {
+      const key = it.name || "Unknown";
       if (!itemMap[key]) {
-        itemMap[key] = { name: key, qty: 0, revenue: 0, unit: it.unit || 'units' };
+        itemMap[key] = { name: key, qty: 0, revenue: 0, unit: it.unit || "units" };
       }
-      itemMap[key].qty += (Number(it.quantity) || 0);
-      itemMap[key].revenue += (Number(it.subtotal) || 0);
+      itemMap[key].qty = roundWeight(itemMap[key].qty + (Number(it.quantity) || 0));
+      itemMap[key].revenue = roundCentavos(itemMap[key].revenue + (Number(it.subtotal) || 0));
       if (it.unit) itemMap[key].unit = it.unit;
     });
   });
 
-  const topSellers = Object.values(itemMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  const topSellers = Object.values(itemMap)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
   const maxSellerRev = topSellers.length > 0 ? topSellers[0].revenue : 1;
 
   const sortedOrders = [...safeOrders].sort((a, b) => {
@@ -101,6 +122,9 @@ export function computeAggregatesFromOrders(orders) {
     txCount,
     avg,
     itemsSold,
+    deliveryCount,
+    walkInCount,
+    totalProductLines,
     topSellers,
     maxSellerRev,
     recentOrders: sortedOrders.slice(0, 5)

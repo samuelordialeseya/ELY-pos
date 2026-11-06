@@ -15,8 +15,16 @@ import { db } from "../firebaseClient";
 import { getStorePaths } from "./dbPaths";
 import { prepareSaleStatsBatch, prepareRollbackStatsBatch } from "./statsService";
 
-// In-memory cache for historical date lookups to avoid repeat Firestore reads
+// In-memory caches for historical date and date-range lookups to avoid repeat Firestore reads
 const historicalOrdersCache = new Map();
+const historicalRangeCache = new Map();
+
+function invalidateDateCaches(dateKey) {
+  if (dateKey) {
+    historicalOrdersCache.delete(dateKey);
+  }
+  historicalRangeCache.clear();
+}
 
 /**
  * Real-time listener for active POS transactions.
@@ -77,6 +85,39 @@ export async function fetchOrdersByDate(user, isOwnerAccount, dateKey, forceRefr
 }
 
 /**
+ * On-demand query for orders across a date range (YYYY-MM-DD start to YYYY-MM-DD end).
+ * Fixes the v1 50-order truncation bug on 7-Day and Monthly analytics dashboards.
+ */
+export async function fetchOrdersByDateRange(user, isOwnerAccount, startDate, endDate, forceRefresh = false) {
+  if (!user || !startDate || !endDate) return [];
+  const cacheKey = `${startDate}_${endDate}`;
+
+  if (!forceRefresh && historicalRangeCache.has(cacheKey)) {
+    return historicalRangeCache.get(cacheKey);
+  }
+
+  const { ordersPath } = getStorePaths(user, isOwnerAccount);
+  try {
+    const qRange = query(
+      collection(db, ordersPath),
+      where("raw_date", ">=", startDate),
+      where("raw_date", "<=", endDate)
+    );
+    const snap = await getDocs(qRange);
+    const rangeOrders = [];
+    snap.forEach((d) => {
+      rangeOrders.push({ id: d.id, ...d.data() });
+    });
+
+    historicalRangeCache.set(cacheKey, rangeOrders);
+    return rangeOrders;
+  } catch (err) {
+    console.error(`Failed to fetch orders for range ${startDate}..${endDate}:`, err);
+    return [];
+  }
+}
+
+/**
  * Atomically commits a completed transaction:
  * 1. Creates order document
  * 2. Increments global customer queue count
@@ -100,7 +141,7 @@ export async function createOrderAtomic(user, isOwnerAccount, orderData) {
   await batch.commit();
 
   // Invalidate any cached entries for this date so fresh data is visible
-  historicalOrdersCache.delete(orderData.raw_date);
+  invalidateDateCaches(orderData.raw_date);
 
   return newOrderRef.id;
 }
@@ -125,24 +166,29 @@ export async function undoOrderAtomic(user, isOwnerAccount, orderId, orderData) 
   if (orderData && orderData.raw_date) {
     const itemsCount = (orderData.items || []).reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
     prepareRollbackStatsBatch(batch, statsPath, orderData.raw_date, orderData.total, itemsCount);
-    historicalOrdersCache.delete(orderData.raw_date);
   }
 
   await batch.commit();
+  invalidateDateCaches(orderData?.raw_date);
 }
 
 /**
- * Permanently deletes an order from history.
+ * Permanently deletes an order from history and rolls back daily stats if orderData is provided.
  */
-export async function deleteOrderRecord(user, isOwnerAccount, orderId, rawDate) {
-  const { ordersPath } = getStorePaths(user, isOwnerAccount);
+export async function deleteOrderRecord(user, isOwnerAccount, orderId, rawDate, orderData = null) {
+  const { ordersPath, statsPath } = getStorePaths(user, isOwnerAccount);
   const orderDocRef = doc(db, ordersPath, orderId);
   const batch = writeBatch(db);
   batch.delete(orderDocRef);
-  await batch.commit();
-  if (rawDate) {
-    historicalOrdersCache.delete(rawDate);
+
+  const targetDate = rawDate || orderData?.raw_date;
+  if (orderData && targetDate && orderData.total !== undefined) {
+    const itemsCount = (orderData.items || []).reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+    prepareRollbackStatsBatch(batch, statsPath, targetDate, orderData.total, itemsCount);
   }
+
+  await batch.commit();
+  invalidateDateCaches(targetDate);
 }
 
 /**
@@ -151,7 +197,5 @@ export async function deleteOrderRecord(user, isOwnerAccount, orderId, rawDate) 
 export async function updateOrderStatus(user, isOwnerAccount, orderId, newStatus, rawDate) {
   const { ordersPath } = getStorePaths(user, isOwnerAccount);
   await updateDoc(doc(db, ordersPath, orderId), { status: newStatus });
-  if (rawDate) {
-    historicalOrdersCache.delete(rawDate);
-  }
+  invalidateDateCaches(rawDate);
 }

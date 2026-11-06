@@ -1,18 +1,18 @@
 {
   "name": "pos-ipad",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "echo \"ERROR: Production deployment is locked per GEMINI.md. Do not deploy to live Firebase.\" && exit 1"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.2.7",
     "@phosphor-icons/react": "^2.1.10",
-    "@supabase/supabase-js": "^2.97.0",
     "driver.js": "^1.4.0",
     "firebase": "^12.14.0",
     "html2canvas": "^1.4.1",

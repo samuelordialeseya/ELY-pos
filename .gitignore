@@ -32,7 +32,9 @@ dist-ssr
 *serviceAccountKey*.json
 service-account*.json
 
-# Scratch & Migration scripts
+# Scratch, Archive & Migration scripts
+_archive/
+scripts/
 compare_prices.cjs
 current_prices_list.json
 fetch_firebase_prices.js

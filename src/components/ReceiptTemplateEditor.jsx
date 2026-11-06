@@ -1,7 +1,37 @@
 import React, { useState } from "react";
-import { Receipt, Check, ArrowCounterClockwise, Sparkle } from "@phosphor-icons/react";
-import { DEFAULT_RECEIPT_CONFIG, formatReceiptText } from "../data/receiptConfig";
+import { Check, ArrowCounterClockwise, Sparkle } from "@phosphor-icons/react";
+import { DEFAULT_RECEIPT_CONFIG } from "../data/receiptConfig";
+import ReceiptCard from "./shared/ReceiptCard";
+import ConfirmModal from "./shared/ConfirmModal";
 import "./ReceiptTemplateEditor.css";
+
+const SAMPLE_PREVIEW_ORDER = {
+  id: "RCP-94821",
+  customer_name: "Juan Dela Cruz",
+  address: "Phase 4, Lot 12 Blk 3",
+  order_type: "delivery",
+  display_date: "Nov 7, 2026",
+  time: "11:30 AM",
+  total: 195,
+  items: [
+    {
+      cartId: "sample-1",
+      name: "Avocado Davao",
+      quantity: 0.5,
+      unit: "kg",
+      price: 150,
+      subtotal: 75
+    },
+    {
+      cartId: "sample-2",
+      name: "Fresh Mango Carabao",
+      quantity: 1,
+      unit: "kg",
+      price: 120,
+      subtotal: 120
+    }
+  ]
+};
 
 export default function ReceiptTemplateEditor({
   receiptConfig = DEFAULT_RECEIPT_CONFIG,
@@ -24,6 +54,7 @@ export default function ReceiptTemplateEditor({
   }
 
   const [savedStatus, setSavedStatus] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleChange = (field, value) => {
     setLocalConfig((prev) => ({
@@ -42,17 +73,8 @@ export default function ReceiptTemplateEditor({
   };
 
   const handleResetDefaults = () => {
-    if (window.confirm("Reset receipt template to default layout?")) {
-      setLocalConfig({ ...DEFAULT_RECEIPT_CONFIG });
-    }
+    setShowResetConfirm(true);
   };
-
-  // Live rendered footer lines
-  const renderedFooter1 = formatReceiptText(
-    localConfig.footer_line1 || "Thank you for shopping at {store}!",
-    storeName
-  );
-  const renderedFooter2 = formatReceiptText(localConfig.footer_line2 || "", storeName);
 
   return (
     <div className="receipt-editor-container">
@@ -214,73 +236,28 @@ export default function ReceiptTemplateEditor({
         </div>
 
         <div className="receipt-preview-wrapper">
-          <div className="instant-receipt-paper receipt-preview-card">
-            {/* Store Brand Header */}
-            <div className="receipt-brand-header">
-              <h3>{(storeName || "MY STORE").toUpperCase()}</h3>
-              <p>{localConfig.subtitle || "Official Sales Receipt"}</p>
-              
-              {localConfig.tagline && (
-                <p className="receipt-tagline">{localConfig.tagline}</p>
-              )}
-
-              {localConfig.address && (
-                <p className="receipt-contact-info">{localConfig.address}</p>
-              )}
-
-              {localConfig.phone && (
-                <p className="receipt-contact-info">Tel: {localConfig.phone}</p>
-              )}
-
-              {localConfig.show_receipt_no && (
-                <div className="receipt-order-no">Receipt #RCP-94821</div>
-              )}
-
-              <div className="receipt-meta-line">
-                <span>Sep 26, 2026 · 11:30 AM</span>
-                <span>Juan Dela Cruz</span>
-              </div>
-            </div>
-
-            <div className="receipt-divider"></div>
-
-            {/* Sample items list */}
-            <div className="receipt-popup-items">
-              <div className="receipt-popup-row">
-                <div>
-                  <strong>Avocado Davao</strong>
-                  <span className="receipt-popup-sub">0.5 kg × ₱150.00</span>
-                </div>
-                <span className="receipt-popup-item-price">₱75.00</span>
-              </div>
-              <div className="receipt-popup-row">
-                <div>
-                  <strong>Fresh Mango Carabao</strong>
-                  <span className="receipt-popup-sub">1 kg × ₱120.00</span>
-                </div>
-                <span className="receipt-popup-item-price">₱120.00</span>
-              </div>
-            </div>
-
-            <div className="receipt-divider"></div>
-
-            {/* Total Paid */}
-            <div className="receipt-popup-total">
-              <span>TOTAL PAID</span>
-              <span className="receipt-popup-total-value">₱195.00</span>
-            </div>
-
-            {/* Footer lines */}
-            <div className="receipt-popup-footer">
-              <p>{renderedFooter1}</p>
-              {renderedFooter2 && <p>{renderedFooter2}</p>}
-            </div>
-
-            {/* Stylized Paper Zigzag / Barcode accent */}
-            <div className="receipt-preview-cut-edge"></div>
-          </div>
+          <ReceiptCard
+            className="receipt-preview-card"
+            order={SAMPLE_PREVIEW_ORDER}
+            storeName={storeName}
+            receiptConfig={localConfig}
+          />
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        title="Reset Receipt Template?"
+        message="Restore the receipt subtitle, contact lines, and footer messages to their original defaults?"
+        confirmLabel="Reset Defaults"
+        cancelLabel="Cancel"
+        variant="primary"
+        onConfirm={() => {
+          setLocalConfig({ ...DEFAULT_RECEIPT_CONFIG });
+          setShowResetConfirm(false);
+        }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 }

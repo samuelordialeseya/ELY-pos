@@ -1,11 +1,11 @@
 export const DEFAULT_RECEIPT_CONFIG = {
-  subtitle: "Official Sales Receipt",
+  subtitle: "Sales Invoice / Cash Slip",
   tagline: "",
   address: "",
   phone: "",
   footer_line1: "Thank you for shopping at {store}!",
   footer_line2: "",
-  show_receipt_no: false,
+  show_receipt_no: true,
   show_address_field: true,
 };
 

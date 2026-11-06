@@ -8,17 +8,19 @@ import {
   PencilSimple, 
   Trash 
 } from "@phosphor-icons/react";
+import ConfirmModal from "../shared/ConfirmModal";
 
 export default function InventoryManagement({
   fruits = [],
-  invSearchTerm,
-  setInvSearchTerm,
-  invSelectedCategory,
-  setInvSelectedCategory,
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct
 }) {
+  // Localized filter state prevents full-tree re-renders on keystroke
+  const [invSearchTerm, setInvSearchTerm] = useState("");
+  const [invSelectedCategory, setInvSelectedCategory] = useState("All");
+  const [pendingDeleteFruit, setPendingDeleteFruit] = useState(null);
+
   // New product form state
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -361,23 +363,29 @@ export default function InventoryManagement({
                           <option value="care">⚠️ Handle Care</option>
                         </select>
                       </td>
-                      <td className="row-actions" style={{ textAlign: 'right' }}>
-                        <button
-                          type="button"
-                          className="btn-inv-save"
-                          onClick={() => saveEdit(f.id)}
-                          title="Save Changes"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-inv-cancel"
-                          onClick={cancelEdit}
-                          title="Cancel"
-                        >
-                          Cancel
-                        </button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="inv-edit-actions">
+                          <button
+                            type="button"
+                            className="btn-save-row btn-inv-save"
+                            onClick={() => saveEdit(f.id)}
+                            title="Save Changes"
+                            aria-label="Save Changes"
+                          >
+                            <Check size={14} weight="bold" />
+                            <span>Save</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-cancel-row btn-inv-cancel"
+                            onClick={cancelEdit}
+                            title="Cancel"
+                            aria-label="Cancel"
+                          >
+                            <X size={14} weight="bold" />
+                            <span>Cancel</span>
+                          </button>
+                        </div>
                       </td>
                     </>
                   ) : (
@@ -398,25 +406,27 @@ export default function InventoryManagement({
                           <span style={{ color: "var(--text-subtle)", fontSize: "11px" }}>—</span>
                         )}
                       </td>
-                      <td className="row-actions" style={{ textAlign: 'right' }}>
-                        <button
-                          type="button"
-                          className="btn-inv-edit"
-                          onClick={() => startEdit(f)}
-                          title={`Edit ${f.name}`}
-                          aria-label={`Edit ${f.name}`}
-                        >
-                          <PencilSimple size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-inv-delete"
-                          onClick={() => onDeleteProduct(f.id)}
-                          title={`Delete ${f.name}`}
-                          aria-label={`Delete ${f.name}`}
-                        >
-                          <Trash size={15} />
-                        </button>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="inv-row-actions">
+                          <button
+                            type="button"
+                            className="btn-edit-row btn-inv-edit"
+                            onClick={() => startEdit(f)}
+                            title={`Edit ${f.name}`}
+                            aria-label={`Edit ${f.name}`}
+                          >
+                            <PencilSimple size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-delete-row btn-inv-delete"
+                            onClick={() => setPendingDeleteFruit(f)}
+                            title={`Delete ${f.name}`}
+                            aria-label={`Delete ${f.name}`}
+                          >
+                            <Trash size={15} />
+                          </button>
+                        </div>
                       </td>
                     </>
                   )}
@@ -426,6 +436,28 @@ export default function InventoryManagement({
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(pendingDeleteFruit)}
+        title="Delete Product from Catalog?"
+        message={
+          pendingDeleteFruit
+            ? `Are you sure you want to remove "${pendingDeleteFruit.name}" (₱${Number(
+                pendingDeleteFruit.price || 0
+              ).toFixed(2)} / ${pendingDeleteFruit.unit}) from your inventory?`
+            : ""
+        }
+        confirmLabel="Delete Product"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={async () => {
+          if (!pendingDeleteFruit) return;
+          const targetId = pendingDeleteFruit.id;
+          setPendingDeleteFruit(null);
+          await onDeleteProduct(targetId);
+        }}
+        onCancel={() => setPendingDeleteFruit(null)}
+      />
     </div>
   );
 }

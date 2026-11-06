@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { CheckCircle, Camera } from "@phosphor-icons/react";
 import { formatPeso } from "../../utils/themeUtils";
+import { roundCentavos } from "../../utils/moneyUtils";
 
 export default function DeliveryManifestView({
   orders = [],
   filterDate,
   setFilterDate,
-  selectedOrderIds,
-  setSelectedOrderIds,
   storeName,
   onToggleStatus,
   onCaptureManifest
 }) {
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+
   // Sort delivered to the bottom
   const deliveryList = [...orders].filter(o => {
     const oDate = o.raw_date || (o.created_at ? o.created_at.slice(0, 10) : "");
@@ -35,7 +36,9 @@ export default function DeliveryManifestView({
     .filter(o => selectedOrderIds.includes(o.id))
     .sort((a, b) => getPriority(a.address) - getPriority(b.address));
 
-  const totalManifestAmount = selectedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const totalManifestAmount = roundCentavos(
+    selectedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
+  );
 
   const FLAG_LABELS = { 
     fragile: "🥚 Fragile", 

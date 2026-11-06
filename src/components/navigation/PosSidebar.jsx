@@ -33,7 +33,7 @@ export default function PosSidebar({
           aria-current={view === 'dashboard' ? 'page' : undefined}
           title="Dashboard Overview"
         >
-          <span className="nav-icon nav-icon-dashboard"><SquaresFour size={18} weight="bold" /></span>
+          <span className="nav-icon"><SquaresFour size={18} weight="bold" /></span>
           <span className="nav-text">Dashboard</span>
           <span className="nav-label-ipad">Dash</span>
         </button>
@@ -45,7 +45,7 @@ export default function PosSidebar({
           aria-current={view === 'pos' ? 'page' : undefined}
           title="POS Cashier Register"
         >
-          <span className="nav-icon nav-icon-pos"><ShoppingCart size={18} weight="bold" /></span>
+          <span className="nav-icon"><ShoppingCart size={18} weight="bold" /></span>
           <span className="nav-text">POS</span>
           <span className="nav-label-ipad">POS</span>
         </button>
@@ -57,7 +57,7 @@ export default function PosSidebar({
           aria-current={view === 'inventory' ? 'page' : undefined}
           title="Inventory Catalog"
         >
-          <span className="nav-icon nav-icon-inventory"><Package size={18} weight="bold" /></span>
+          <span className="nav-icon"><Package size={18} weight="bold" /></span>
           <span className="nav-text">Inventory</span>
           <span className="nav-label-ipad">Catalog</span>
         </button>
@@ -69,7 +69,7 @@ export default function PosSidebar({
           aria-current={view === 'orders' ? 'page' : undefined}
           title="Transaction History"
         >
-          <span className="nav-icon nav-icon-orders"><ClipboardText size={18} weight="bold" /></span>
+          <span className="nav-icon"><ClipboardText size={18} weight="bold" /></span>
           <span className="nav-text">History</span>
           <span className="nav-label-ipad">History</span>
         </button>
@@ -81,7 +81,7 @@ export default function PosSidebar({
           aria-current={view === 'delivery' ? 'page' : undefined}
           title="Delivery Manifests"
         >
-          <span className="nav-icon nav-icon-delivery"><Truck size={18} weight="bold" /></span>
+          <span className="nav-icon"><Truck size={18} weight="bold" /></span>
           <span className="nav-text">Delivery</span>
           <span className="nav-label-ipad">Delivery</span>
         </button>
@@ -93,7 +93,7 @@ export default function PosSidebar({
           aria-current={view === 'settings' ? 'page' : undefined}
           title="Store Settings"
         >
-          <span className="nav-icon nav-icon-settings"><Gear size={18} weight="bold" /></span>
+          <span className="nav-icon"><Gear size={18} weight="bold" /></span>
           <span className="nav-text">Settings</span>
           <span className="nav-label-ipad">Settings</span>
         </button>

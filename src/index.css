@@ -4,3 +4,8 @@ body {
   color-scheme: light only;
 }
 
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
