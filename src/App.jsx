@@ -39,7 +39,7 @@ function ViewFallback() {
 }
 
 function PosTerminalShell({ toast, showToast }) {
-  const { user, isDemoMode, isOwnerAccount, loading: authLoading, logoutUser } = useAuth();
+  const { user, isDemoMode, isOwnerAccount, loading: authLoading, enterDemoMode, logoutUser } = useAuth();
 
   const {
     fruits,
@@ -148,7 +148,7 @@ function PosTerminalShell({ toast, showToast }) {
   const isAuthenticated = Boolean(user || auth.currentUser || isDemoMode);
   const activeScreen = (() => {
     if (!authLoading && screen === "app" && !isAuthenticated) return "landing";
-    if (!authLoading && Boolean(user || auth.currentUser) && (screen === "auth" || (screen === "landing" && window.location.hash !== "#landing"))) {
+    if (!authLoading && isAuthenticated && (screen === "auth" || (screen === "landing" && window.location.hash !== "#landing"))) {
       return "app";
     }
     return screen;
@@ -231,10 +231,10 @@ function PosTerminalShell({ toast, showToast }) {
               window.location.hash = "#auth";
             }
           }}
-          onStartTour={() => {
+          onLaunchDemo={(options = {}) => { const withTour = typeof options === "boolean" ? options : Boolean(options?.withTour); const initialView = typeof options === "object" && options?.view ? options.view : "pos"; enterDemoMode(); setView(initialView);
             setScreen("app");
             window.location.hash = "#app";
-            setTimeout(() => handleStartFullTour(), 300);
+            if (withTour) setTimeout(() => handleStartFullTour(), 350);
           }}
         />
       </Suspense>
@@ -245,7 +245,7 @@ function PosTerminalShell({ toast, showToast }) {
     return (
       <Suspense fallback={<ViewFallback />}>
         <AuthPage
-          onSuccess={() => {
+          onSuccessLogin={() => {
             setScreen("app");
             window.location.hash = "#app";
           }}
@@ -465,7 +465,7 @@ function PosTerminalShell({ toast, showToast }) {
                 ).catch(console.error);
               }
               setShowSetupWizard(false);
-              setTimeout(() => handleStartFullTour(), 300);
+              setTimeout(() => { handleStartFullTour(); }, 300);
             }}
             onSkip={() => {
               localStorage.setItem("elypos_setup_done", "true");

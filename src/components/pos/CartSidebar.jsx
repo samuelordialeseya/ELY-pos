@@ -31,6 +31,7 @@ export default function CartSidebar({
   // Expandable bottom cart drawer state for iPad Portrait (<=900px) & Mobile
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState(null);
 
   const totalAmount = computeCartTotal(cart);
   const trimmedAddress = address.trim();
@@ -49,6 +50,13 @@ export default function CartSidebar({
     setShowClearConfirm(false);
     setIsMobileCartOpen(false);
     onClearCart();
+  };
+
+  const handleConfirmDeleteItem = () => {
+    if (!pendingDeleteItem) return;
+    const targetId = pendingDeleteItem.cartId;
+    setPendingDeleteItem(null);
+    onRemoveItem?.(targetId);
   };
 
   return (
@@ -141,7 +149,7 @@ export default function CartSidebar({
                       <button
                         type="button"
                         className="btn-remove-item"
-                        onClick={() => onRemoveItem(item.cartId)}
+                        onClick={() => setPendingDeleteItem(item)}
                         title={`Remove ${item.name}`}
                         aria-label={`Remove ${item.name} from cart`}
                       >
@@ -158,7 +166,13 @@ export default function CartSidebar({
                         <button
                           type="button"
                           className="qty-step-btn"
-                          onClick={() => onStepItemQty(item.cartId, -1)}
+                          onClick={() => {
+                            if (item.quantity <= 1) {
+                              setPendingDeleteItem(item);
+                            } else {
+                              onStepItemQty(item.cartId, -1);
+                            }
+                          }}
                           title="Decrease quantity by 1"
                           aria-label={`Decrease ${item.name} quantity`}
                         >
@@ -269,6 +283,23 @@ export default function CartSidebar({
         variant="danger"
         onConfirm={handleConfirmClear}
         onCancel={() => setShowClearConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(pendingDeleteItem)}
+        title="Delete Item from Cart?"
+        message={
+          pendingDeleteItem
+            ? `Permanently remove "${pendingDeleteItem.name}" (${pendingDeleteItem.quantity} ${
+                pendingDeleteItem.unit
+              } · ${formatPeso(pendingDeleteItem.subtotal || 0)}) from the current order?`
+            : ""
+        }
+        confirmLabel="Delete Item"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleConfirmDeleteItem}
+        onCancel={() => setPendingDeleteItem(null)}
       />
     </>
   );

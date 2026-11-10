@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+  <!-- Clip to rounded square — removes the dark background from the original screenshot -->
+  <defs>
+    <clipPath id="logo-clip">
+      <rect width="512" height="512" rx="110" ry="110"/>
+    </clipPath>
+  </defs>
+
+  <!-- Your actual logo, clipped to the blue rounded square -->
+  <image
+    href="/ely-logo.png"
+    x="0" y="0"
+    width="512" height="512"
+    clip-path="url(#logo-clip)"
+    preserveAspectRatio="xMidYMid slice"
+  />
+</svg>

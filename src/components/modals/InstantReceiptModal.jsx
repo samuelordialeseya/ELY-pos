@@ -193,18 +193,16 @@ export default function InstantReceiptModal({
               )}
               <span>{copied ? "Copied!" : "Copy"}</span>
             </button>
+            <button
+              type="button"
+              className="receipt-btn-close"
+              onClick={onClose}
+              aria-label="Close receipt"
+              title="Close (Esc)"
+            >
+              <X size={16} weight="bold" />
+            </button>
           </div>
-
-          <div className="receipt-action-divider" aria-hidden="true" />
-          <button
-            type="button"
-            className="receipt-btn-close"
-            onClick={onClose}
-            aria-label="Close receipt"
-            title="Close (Esc)"
-          >
-            <X size={18} weight="bold" />
-          </button>
         </div>
 
         {/* Scrollable Receipt Container for Long Thermal Receipts */}

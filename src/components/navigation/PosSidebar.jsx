@@ -9,6 +9,15 @@ import {
   Question 
 } from "@phosphor-icons/react";
 
+// Typographic helper: keeps coordinating conjunctions and trailing words grouped to prevent awkward line breaks
+function formatBrandName(name) {
+  if (!name || typeof name !== "string") return name;
+  return name
+    .trim()
+    .replace(/[ \t]+(and|&|\+|with|or|for)[ \t]+/gi, " $1\u00A0")
+    .replace(/[ \t]+([^ \t\u00A0]+)$/, "\u00A0$1");
+}
+
 export default function PosSidebar({
   storeName,
   view,
@@ -22,7 +31,7 @@ export default function PosSidebar({
           <img src="/ely-logo.png" alt="ELY" className="brand-logo-img" />
           <span className="brand-active-dot" title="Terminal Online" />
         </div>
-        <h2 className="brand-text">{storeName}</h2>
+        <h2 className="brand-text">{formatBrandName(storeName)}</h2>
       </div>
       <nav className="nav-links" aria-label="Terminal Navigation">
         <button
@@ -33,7 +42,7 @@ export default function PosSidebar({
           aria-current={view === 'dashboard' ? 'page' : undefined}
           title="Dashboard Overview"
         >
-          <span className="nav-icon"><SquaresFour size={18} weight="bold" /></span>
+          <span className="nav-icon"><SquaresFour size={20} weight="bold" /></span>
           <span className="nav-text">Dashboard</span>
           <span className="nav-label-ipad">Dash</span>
         </button>
@@ -45,8 +54,8 @@ export default function PosSidebar({
           aria-current={view === 'pos' ? 'page' : undefined}
           title="POS Cashier Register"
         >
-          <span className="nav-icon"><ShoppingCart size={18} weight="bold" /></span>
-          <span className="nav-text">POS</span>
+          <span className="nav-icon"><ShoppingCart size={20} weight="bold" /></span>
+          <span className="nav-text">POS Register</span>
           <span className="nav-label-ipad">POS</span>
         </button>
         <button
@@ -57,8 +66,8 @@ export default function PosSidebar({
           aria-current={view === 'inventory' ? 'page' : undefined}
           title="Inventory Catalog"
         >
-          <span className="nav-icon"><Package size={18} weight="bold" /></span>
-          <span className="nav-text">Inventory</span>
+          <span className="nav-icon"><Package size={20} weight="bold" /></span>
+          <span className="nav-text">Inventory Pro</span>
           <span className="nav-label-ipad">Catalog</span>
         </button>
         <button
@@ -69,8 +78,8 @@ export default function PosSidebar({
           aria-current={view === 'orders' ? 'page' : undefined}
           title="Transaction History"
         >
-          <span className="nav-icon"><ClipboardText size={18} weight="bold" /></span>
-          <span className="nav-text">History</span>
+          <span className="nav-icon"><ClipboardText size={20} weight="bold" /></span>
+          <span className="nav-text">Order History</span>
           <span className="nav-label-ipad">History</span>
         </button>
         <button
@@ -81,7 +90,7 @@ export default function PosSidebar({
           aria-current={view === 'delivery' ? 'page' : undefined}
           title="Delivery Manifests"
         >
-          <span className="nav-icon"><Truck size={18} weight="bold" /></span>
+          <span className="nav-icon"><Truck size={20} weight="bold" /></span>
           <span className="nav-text">Delivery</span>
           <span className="nav-label-ipad">Delivery</span>
         </button>
@@ -93,7 +102,7 @@ export default function PosSidebar({
           aria-current={view === 'settings' ? 'page' : undefined}
           title="Store Settings"
         >
-          <span className="nav-icon"><Gear size={18} weight="bold" /></span>
+          <span className="nav-icon"><Gear size={20} weight="bold" /></span>
           <span className="nav-text">Settings</span>
           <span className="nav-label-ipad">Settings</span>
         </button>

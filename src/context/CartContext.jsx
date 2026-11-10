@@ -194,8 +194,14 @@ export function CartProvider({ children, showToast }) {
   }, []);
 
   const handleRemoveCartItem = useCallback((cartId) => {
-    setCart((prev) => prev.filter((c) => c.cartId !== cartId));
-  }, []);
+    setCart((prev) => {
+      const target = prev.find((c) => c.cartId === cartId);
+      if (target && showToast) {
+        showToast(`Removed ${target.name} from cart`);
+      }
+      return prev.filter((c) => c.cartId !== cartId);
+    });
+  }, [showToast]);
 
   const handleClearCart = useCallback(() => {
     if (cart.length === 0) return;

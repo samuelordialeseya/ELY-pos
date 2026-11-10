@@ -134,7 +134,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
 
         {/* Brand Header */}
         <div className="auth-header">
-          <img src="/ely-logo.png" alt="ELY" className="auth-logo-img" />
+          <img src="/landing-logo.png" alt="ELY.pos" className="auth-logo-img" />
           <h2 className="auth-title">
             {isSignUp ? "Create Your Account" : "Welcome to ELY.pos"}
           </h2>

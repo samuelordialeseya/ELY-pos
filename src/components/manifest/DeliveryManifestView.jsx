@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle, Camera } from "@phosphor-icons/react";
+import { CheckCircle, Camera, Check, Minus } from "@phosphor-icons/react";
 import { formatPeso } from "../../utils/themeUtils";
 import { roundCentavos } from "../../utils/moneyUtils";
 
@@ -57,6 +57,23 @@ export default function DeliveryManifestView({
   });
   const flagEntries = Object.entries(flagCounts);
 
+  const allSelected = deliveryList.length > 0 && deliveryList.every(o => selectedOrderIds.includes(o.id));
+  const someSelected = selectedOrderIds.length > 0 && !allSelected;
+
+  const handleToggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedOrderIds([]);
+    } else {
+      setSelectedOrderIds(deliveryList.map(o => o.id));
+    }
+  };
+
+  const handleToggleOrder = (orderId) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(orderId) ? prev.filter(i => i !== orderId) : [...prev, orderId]
+    );
+  };
+
   return (
     <div className="delivery-grid">
       <div className="delivery-step-select">
@@ -69,6 +86,27 @@ export default function DeliveryManifestView({
             className="date-input" 
           />
         </div>
+
+        {deliveryList.length > 0 && (
+          <div className="delivery-selection-toolbar">
+            <button 
+              type="button" 
+              className="btn-select-all"
+              onClick={handleToggleSelectAll}
+              title={allSelected ? "Deselect all orders" : "Select all orders"}
+            >
+              <span className={`custom-checklist-box ${allSelected ? "checked" : someSelected ? "indeterminate" : ""}`}>
+                {allSelected && <Check size={12} weight="bold" className="custom-check-icon" />}
+                {someSelected && <Minus size={12} weight="bold" className="custom-check-icon" />}
+              </span>
+              <span>{allSelected ? "Deselect All" : "Select All"}</span>
+            </button>
+            <span className="selection-count-badge">
+              {selectedOrderIds.length} of {deliveryList.length} selected
+            </span>
+          </div>
+        )}
+
         <div className="order-selection-list">
           {deliveryList.length === 0 ? (
             <div className="history-empty">No orders for delivery on {filterDate}.</div>
@@ -83,27 +121,45 @@ export default function DeliveryManifestView({
                 >
                   <div 
                     className="sel-click-area" 
-                    onClick={() => {
-                      setSelectedOrderIds(prev => 
-                        prev.includes(o.id) ? prev.filter(i => i !== o.id) : [...prev, o.id]
-                      );
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    tabIndex={0}
+                    onClick={() => handleToggleOrder(o.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        handleToggleOrder(o.id);
+                      }
                     }}
                   >
-                    <input type="checkbox" checked={isSelected} readOnly />
+                    <span 
+                      className={`custom-checklist-box ${isSelected ? "checked" : ""}`}
+                      aria-hidden="true"
+                    >
+                      {isSelected && <Check size={12} weight="bold" className="custom-check-icon" />}
+                    </span>
                     <div className="o-info">
-                      <strong>
-                        {o.customer_name} 
-                        {isDelivered && (
-                          <CheckCircle size={16} weight="fill" className="status-delivered-icon" />
-                        )}
-                      </strong>
-                      <p>{o.address}</p>
+                      <div className="o-info-top">
+                        <strong className="o-customer-name">
+                          {o.customer_name || "Customer"} 
+                          {isDelivered && (
+                            <span className="delivered-tag" title="Delivered">
+                              <CheckCircle size={13} weight="fill" /> Delivered
+                            </span>
+                          )}
+                        </strong>
+                        {o.total ? (
+                          <span className="o-amount-tag">{formatPeso(o.total)}</span>
+                        ) : null}
+                      </div>
+                      <p className="o-address">{o.address || "No address provided"}</p>
                     </div>
                   </div>
                   <button 
                     type="button" 
                     className="btn-status-toggle" 
                     onClick={() => onToggleStatus(o.id, o.status, o.raw_date)}
+                    title={isDelivered ? "Mark as Pending Delivery" : "Mark as Delivered"}
                   >
                     {isDelivered ? "Undo" : "Done"}
                   </button>

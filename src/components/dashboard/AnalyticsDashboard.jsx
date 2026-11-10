@@ -32,7 +32,7 @@ export default function AnalyticsDashboard({
 
   const dashRangeLabel = 
     dashboardRange === "today" ? "Today" : 
-    dashboardRange === "week" ? "This Week (7 Days)" : 
+    dashboardRange === "week" ? "7 Days" : 
     dashboardRange === "month" ? "This Month" : 
     (dashboardCustomDate || "Selected Date");
 
@@ -71,7 +71,7 @@ export default function AnalyticsDashboard({
               <input
                 type="date"
                 aria-label="Filter by specific date"
-                className={`date-input dash-date-pick ${dashboardRange === "custom" ? "active" : ""}`}
+                className={`dash-date-pick ${dashboardRange === "custom" ? "active" : ""}`}
                 value={dashboardCustomDate}
                 onChange={e => { 
                   setDashboardCustomDate(e.target.value); 
@@ -82,7 +82,10 @@ export default function AnalyticsDashboard({
           </div>
           <div className="dash-range-label">
             <Calendar size={13} className="dash-range-label-icon" />
-            <span>Showing: <strong>{dashRangeLabel}</strong></span>
+            <span className="dash-range-label-text">
+              <span className="dash-range-label-prefix">Showing: </span>
+              <strong>{dashRangeLabel}</strong>
+            </span>
           </div>
         </div>
 

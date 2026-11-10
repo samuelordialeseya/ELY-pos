@@ -504,7 +504,10 @@ export default function OrderHistoryView({
                         </span>
                       )}
                     </div>
-                    <h4 className="history-customer-name">
+                    <h4
+                      className="history-customer-name"
+                      title={ord.customer_name || "Walk-in Customer"}
+                    >
                       {ord.customer_name || "Walk-in Customer"}
                     </h4>
                     <div className="history-time-stamp">
@@ -531,21 +534,28 @@ export default function OrderHistoryView({
                 </div>
 
                 <div className="history-items-summary">
-                  {items.slice(0, 5).map((it, i) => (
-                    <span
-                      key={it.cartId || `${it.name}-${i}`}
-                      className="history-item-pill"
-                    >
-                      <strong>
-                        {it.quantity} {it.unit}
-                      </strong>{" "}
-                      {it.name}
-                    </span>
-                  ))}
-                  {items.length > 5 && (
-                    <span className="history-item-pill-more">
-                      +{items.length - 5} more items
-                    </span>
+                  {items.length === 0 ? (
+                    <span className="history-item-pill-empty">No items recorded</span>
+                  ) : (
+                    <>
+                      {items.slice(0, 5).map((it, i) => (
+                        <span
+                          key={it.cartId || `${it.name}-${i}`}
+                          className="history-item-pill"
+                          title={`${it.quantity} ${it.unit} ${it.name}`}
+                        >
+                          <strong>
+                            {it.quantity} {it.unit}
+                          </strong>{" "}
+                          {it.name}
+                        </span>
+                      ))}
+                      {items.length > 5 && (
+                        <span className="history-item-pill-more">
+                          +{items.length - 5} more items
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
 

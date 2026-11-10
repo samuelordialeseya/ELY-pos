@@ -3,6 +3,16 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  server: {
+    port: 5180,
+    strictPort: false,
+    host: true
+  },
+  preview: {
+    port: 5180,
+    strictPort: false,
+    host: true
+  },
   build: {
     rollupOptions: {
       output: {

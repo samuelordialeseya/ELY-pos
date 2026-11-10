@@ -4,10 +4,10 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --port 5180 --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5180",
     "deploy": "echo \"ERROR: Production deployment is locked per GEMINI.md. Do not deploy to live Firebase.\" && exit 1"
   },
   "dependencies": {
