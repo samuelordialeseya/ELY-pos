@@ -136,7 +136,8 @@
   gap: 6px;
   background: linear-gradient(135deg, #00A3E0 0%, #0284c7 100%);
   border: none;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -146,6 +147,15 @@
   white-space: nowrap;
   box-shadow: 0 3px 10px rgba(0, 163, 224, 0.25);
   transition: all 0.2s ease;
+  transform: translateZ(0);
+}
+
+.auth-btn-quick-demo *,
+.auth-btn-quick-demo span,
+.auth-btn-quick-demo svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  fill: currentColor;
 }
 
 .auth-btn-quick-demo:hover {
@@ -283,6 +293,7 @@
   background: linear-gradient(135deg, #00A3E0 0%, #0284c7 100%) !important;
   border: none !important;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-family: inherit;
   font-size: 14px !important;
   font-weight: 600 !important;
@@ -293,6 +304,18 @@
   transition: all 0.2s ease;
   margin-top: 8px;
   outline: none;
+  transform: translateZ(0);
+}
+
+.auth-submit-btn *,
+.auth-submit-btn span,
+.auth-submit-btn svg,
+.auth-btn-primary *,
+.auth-btn-primary span,
+.auth-btn-primary svg {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  fill: currentColor;
 }
 
 .auth-submit-btn:hover:not(:disabled),

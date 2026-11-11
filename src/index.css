@@ -1,11 +1,16 @@
 body {
   margin: 0;
   background-color: #f4f4f4;
-  color-scheme: light only;
 }
 
-button {
+button,
+input[type="button"],
+input[type="submit"],
+[role="button"] {
   font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
   -webkit-tap-highlight-color: transparent;
+  color: inherit;
 }
 

@@ -389,7 +389,8 @@
   justify-content: center;
   gap: 10px;
   background: #00A3E0;
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   border: none;
   font-family: inherit;
   font-size: 15px;

@@ -95,7 +95,8 @@
   height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, #00A3E0 0%, #0284c7 100%);
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-weight: 700;
   font-size: 18px;
   display: flex;

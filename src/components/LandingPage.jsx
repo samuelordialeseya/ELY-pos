@@ -25,7 +25,7 @@ const ARCH_SPECS = [
   {
     code: "RUNTIME",
     name: "Vite 7 + PWA",
-    detail: "Installable home-screen iPad web app with instant boot"
+    detail: "Installable home-screen web app with instant boot"
   },
   {
     code: "SYNC ENGINE",
@@ -138,7 +138,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
               className="lp-btn lp-btn-secondary lp-btn-sm"
               onClick={handleTriggerAuth}
             >
-              Sign In
+              <span>Sign In</span>
             </button>
             <button
               type="button"
@@ -146,19 +146,18 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
               onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
             >
               <Sparkle size={15} weight="fill" />
-              <span>Launch Live Demo</span>
+              <span>Try it out!</span>
             </button>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero Section: Full-Screen Animated 3D Conveyor Background */}
+        {/* Simple & Clean Hero Section */}
         <section className="landing-hero">
           <div className="hero-content">
             <h1 className="hero-title">
-              <span className="hero-title-line">The Fast, Touch-First POS</span> <br className="hero-title-br" />
-              <span className="hero-title-for">for </span>
+              The Fast, Touch-First POS for <br className="hero-title-br" />
               <span className="hero-gradient-text">Fresh Produce &amp; Small Retail</span>
             </h1>
 
@@ -173,14 +172,12 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
                 type="button"
                 className="hero-launch-pill"
                 onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
-                title="Launch Live Demo Sandbox"
+                title="Launch demo"
               >
                 <div className="hero-pill-badge">
-                  <Sparkle size={15} weight="fill" />
-                  <span>Demo Store</span>
+                  <Sparkle size={16} weight="fill" />
+                  <span>Launch demo</span>
                 </div>
-                <span className="hero-pill-divider">|</span>
-                <span className="hero-pill-placeholder">Launch live iPad register</span>
                 <span className="hero-pill-arrow-btn" aria-hidden="true">
                   <ArrowRight size={15} weight="bold" />
                 </span>
@@ -198,56 +195,19 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
 
             <div className="hero-perks">
               <div className="hero-perk-item">
-                <CheckCircle size={15} weight="fill" className="perk-icon" />
+                <CheckCircle size={16} weight="fill" className="perk-icon" />
                 <span>100% Free Demo Sandbox</span>
               </div>
               <div className="hero-perk-item">
-                <CheckCircle size={15} weight="fill" className="perk-icon" />
+                <CheckCircle size={16} weight="fill" className="perk-icon" />
                 <span>Real-time Firebase Cloud Sync</span>
               </div>
               <div className="hero-perk-item">
-                <CheckCircle size={15} weight="fill" className="perk-icon" />
-                <span>iPad &amp; PWA Ready</span>
+                <CheckCircle size={16} weight="fill" className="perk-icon" />
+                <span>Touch &amp; PWA Ready</span>
               </div>
             </div>
           </div>
-
-          {/* Full-Screen Animated 3D Conveyor & POS Background */}
-          <div className="hero-fullscreen-backdrop" aria-hidden="true">
-            <video 
-              className="hero-fullscreen-media"
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              poster="/hero-conveyor-loop.gif"
-            >
-              <source src="/hero-conveyor-loop.webm" type="video/webm" />
-              <source src="/hero-conveyor-loop.mp4" type="video/mp4" />
-              <img 
-                src="/hero-conveyor-loop.gif" 
-                alt="ELY.pos 3D Animated Register with Conveyor Belt Feeding Produce Boxes" 
-                className="hero-fullscreen-media"
-              />
-            </video>
-            <div className="hero-fullscreen-overlay" />
-          </div>
-
-          {/* Interactive Click Target on 3D Register to Launch Demo */}
-          <div 
-            className="hero-fullscreen-interactive" 
-            onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })} 
-            title="Click 3D Register to Launch Live Demo" 
-            aria-label="Launch Live Demo"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleTriggerDemo({ withTour: false, view: "pos" });
-              }
-            }}
-          />
         </section>
 
         {/* Operational Metrics Strip */}
@@ -345,7 +305,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
             {/* Cell 2 (5 Cols): 5-Second Checkout Rollback */}
             <article className="lp-bento-card lp-bento-span-5">
               <div className="lp-bento-copy">
-                <div className="lp-bento-icon tone-emerald">
+                <div className="lp-bento-icon tone-blue">
                   <ShieldCheck size={22} weight="bold" />
                 </div>
                 <h3>5-Second Checkout Rollback</h3>
@@ -466,7 +426,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
           <div className="lp-arch-layout">
             <div className="lp-arch-intro">
               <h2 className="lp-section-heading">
-                Engineered for counter iPads and low-glare reliability.
+                Engineered for counter registers and low-glare reliability.
               </h2>
               <p className="lp-section-desc">
                 Built on a modular React 19 + Firebase Firestore architecture that keeps the
@@ -511,7 +471,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
         <section className="lp-cta-section">
           <div className="lp-cta-card">
             <div className="lp-cta-copy">
-              <h2>Test the live iPad register right in your browser.</h2>
+              <h2>Test the live register right in your browser.</h2>
               <p>
                 Explore pre-loaded produce inventory, test fractional scale weights, export a PNG
                 receipt, and inspect daily sales analytics in an isolated sandbox.
@@ -524,7 +484,7 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
                 onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
               >
                 <Lightning size={18} weight="fill" />
-                <span>Launch Live Demo</span>
+                <span>Try it out!</span>
                 <ArrowRight size={17} weight="bold" />
               </button>
               <button

@@ -51,8 +51,8 @@ export default defineConfig({
         name: "ELY.pos — Retail Platform",
         short_name: "ELY.pos",
         description: "Fast, touch-first POS for fresh produce & small retail",
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
         display: "standalone",
         start_url: ".",
         icons: [

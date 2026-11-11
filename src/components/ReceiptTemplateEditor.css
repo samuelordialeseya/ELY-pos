@@ -149,7 +149,8 @@
   border-radius: 8px;
   border: none;
   background: linear-gradient(135deg, #00A3E0 0%, #0284c7 100%);
-  color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
