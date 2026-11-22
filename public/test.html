@@ -2,132 +2,410 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Button Color Test — iPad Safari</title>
-  <link rel="stylesheet" href="/src/components/LandingPage.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="color-scheme" content="light">
+  <title>iPad Safari Text Fix Finder (V3)</title>
   <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f8fafc;
       color: #0f172a;
-      padding: 30px 20px;
-      max-width: 600px;
+      padding: 24px 16px 80px;
+      max-width: 680px;
       margin: 0 auto;
+      -webkit-font-smoothing: antialiased;
+    }
+    .header-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
     }
     h1 {
-      font-size: 22px;
-      margin-bottom: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
     }
     p {
       color: #475569;
-      font-size: 14px;
-      margin-bottom: 24px;
+      font-size: 13.5px;
       line-height: 1.5;
+    }
+    .reload-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: #0284c7;
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0284c7;
+      margin: 28px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
     }
     .test-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
     }
-    .test-label {
+    .test-card.candidate {
+      border-left: 4px solid #10b981;
+    }
+    .test-card.glitched {
+      border-left: 4px solid #ef4444;
+    }
+    .test-info {
       flex: 1;
     }
-    .test-label strong {
+    .test-info strong {
       display: block;
-      font-size: 14px;
+      font-size: 13.5px;
       color: #0f172a;
     }
-    .test-label small {
+    .test-info small {
       display: block;
-      font-size: 12px;
+      font-size: 11.5px;
       color: #64748b;
       margin-top: 2px;
     }
 
-    /* Common Button Styles */
-    .btn-base {
+    /* Common Button Base */
+    .btn-common {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 44px;
-      padding: 0 20px;
-      font-size: 14px;
+      gap: 8px;
+      font-family: inherit;
       font-weight: 700;
       border-radius: 9999px;
       cursor: pointer;
-      text-decoration: none;
       white-space: nowrap;
+      text-decoration: none;
+      -webkit-appearance: none;
+      appearance: none;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+      transition: all 0.15s ease;
     }
 
-    /* Test 1: Plain <button> + Solid Blue + White text */
-    .btn-test-1 {
+    /* Group 1: Blue Primary (.lp-btn-primary) */
+    .btn-blue {
+      height: 38px;
+      padding: 0 16px;
+      font-size: 13.5px;
       background: #0284c7;
-      color: #ffffff;
-      border: none;
+      background-image: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      border: 1px solid rgba(3, 105, 161, 0.6);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+    .btn-blue * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      fill: #ffffff !important;
     }
 
-    /* Test 2: Plain <button> + Linear Gradient + White text */
-    .btn-test-2 {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
+    /* Group 2: Hero Launch Demo Pill */
+    .btn-pill {
+      height: 48px;
+      padding: 6px 8px 6px 18px;
+      background: #ffffff;
+      border: 1.5px solid rgba(0, 163, 224, 0.35);
+      border-radius: 9999px;
+      box-shadow: 0 4px 14px rgba(0, 163, 224, 0.15);
+      color: #0284c7 !important;
+      -webkit-text-fill-color: #0284c7 !important;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-pill * {
+      color: #0284c7 !important;
+      -webkit-text-fill-color: #0284c7 !important;
+      fill: #0284c7 !important;
+    }
+    .pill-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+    }
+
+    /* Group 3: Hero Secondary (.hero-btn-secondary) */
+    .btn-white {
+      height: 44px;
+      padding: 0 20px;
+      font-size: 13.5px;
+      background: #ffffff;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    }
+    .btn-white * {
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      fill: #0f172a !important;
+    }
+
+    /* Group 4: POS Checkout (.btn-checkout) */
+    .btn-green {
+      height: 46px;
+      padding: 0 22px;
+      font-size: 14px;
+      background: #10B981;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
       border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+    .btn-green * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      fill: #ffffff !important;
+    }
+
+    /* CSS Mask Icon technique */
+    .mask-icon-white {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      background-color: #ffffff;
+      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><path d='M208,128a80,80,0,0,1-80,80,80,80,0,0,1-80-80,80,80,0,0,1,80-80A80,80,0,0,1,208,128Z'></path></svg>") no-repeat center / contain;
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><path d='M208,128a80,80,0,0,1-80,80,80,80,0,0,1-80-80,80,80,0,0,1,80-80A80,80,0,0,1,208,128Z'></path></svg>") no-repeat center / contain;
     }
   </style>
 </head>
 <body>
-  <h1>iPad Safari Button Comparison</h1>
-  <p>Comparing the working simple buttons against the actual landing page classes on the exact same screen:</p>
 
+  <div class="header-box">
+    <h1>iPad Safari Text Color Fix Finder (V3)</h1>
+    <p>
+      Look at each option on your iPad. All CSS is 100% self-contained directly in this page to guarantee zero caching or Vite MIME delays.
+    </p>
+    <button type="button" class="reload-btn" onclick="window.location.reload(true);">Force Reload Page</button>
+  </div>
+
+  <!-- GROUP 1: BLUE PRIMARY BUTTON -->
+  <div class="section-title">Group 1: Primary Blue Button (Expected: Pure White Text)</div>
+
+  <!-- 1A: Plain text only -->
   <div class="test-card">
-    <div class="test-label">
-      <strong>A. Working Simple Button</strong>
-      <small>From earlier test (btn-test-1)</small>
+    <div class="test-info">
+      <strong>1A. Control (Plain Text Only, No SVG)</strong>
+      <small>Does text render pure white?</small>
     </div>
-    <button type="button" class="btn-base btn-test-1">
-      White Text A
+    <button type="button" class="btn-common btn-blue">
+      <span>Try it out!</span>
     </button>
   </div>
 
-  <div class="test-card">
-    <div class="test-label">
-      <strong>B. Landing Page Class (.lp-btn-primary)</strong>
-      <small>Using LandingPage.css button class</small>
+  <!-- 1B: Inline SVG before text (Glitched) -->
+  <div class="test-card glitched">
+    <div class="test-info">
+      <strong>1B. Glitched (Inline &lt;svg&gt; BEFORE text)</strong>
+      <small>Current codebase state (Turns text dark gray/black)</small>
     </div>
-    <button type="button" class="lp-btn lp-btn-primary lp-btn-sm">
-      <span>White Text B</span>
+    <button type="button" class="btn-common btn-blue">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"></path>
+      </svg>
+      <span>Try it out!</span>
     </button>
   </div>
 
-  <div class="test-card">
-    <div class="test-label">
-      <strong>C. Exact Landing Page Header Pill</strong>
-      <small>Inside .lp-header-inner styling</small>
+  <!-- 1C: Icon via <img> tag -->
+  <div class="test-card candidate">
+    <div class="test-info">
+      <strong>1C. FIX CANDIDATE: Icon as &lt;img&gt; tag</strong>
+      <small>Isolates SVG from WebKit text painter (Expected: Pure White)</small>
     </div>
-    <div style="background: #ffffff; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 9999px; display: inline-flex; gap: 8px;">
-      <button type="button" class="lp-btn lp-btn-secondary lp-btn-sm">
-        <span>Sign In</span>
-      </button>
-      <button type="button" class="lp-btn lp-btn-primary lp-btn-sm">
-        <span>Try it out!</span>
-      </button>
-    </div>
+    <button type="button" class="btn-common btn-blue">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='%23ffffff' viewBox='0 0 256 256'><path d='M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z'></path></svg>" width="15" height="15" alt="" />
+      <span>Try it out!</span>
+    </button>
   </div>
 
+  <!-- 1D: Text BEFORE SVG -->
   <div class="test-card">
-    <div class="test-label">
-      <strong>D. Secondary Button (.hero-btn-secondary)</strong>
-      <small>The button that was turning grayish white</small>
+    <div class="test-info">
+      <strong>1D. Order Flip: Text BEFORE &lt;svg&gt;</strong>
+      <small>Paints text before SVG executes in graphics context</small>
     </div>
-    <button type="button" class="hero-btn-secondary">
+    <button type="button" class="btn-common btn-blue">
+      <span>Try it out!</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 1E: CSS Mask Icon -->
+  <div class="test-card candidate">
+    <div class="test-info">
+      <strong>1E. FIX CANDIDATE: CSS Mask Icon (No &lt;svg&gt; DOM node)</strong>
+      <small>Icon is a CSS background mask, zero SVG graphics context</small>
+    </div>
+    <button type="button" class="btn-common btn-blue">
+      <span class="mask-icon-white" aria-hidden="true"></span>
+      <span>Try it out!</span>
+    </button>
+  </div>
+
+  <!-- GROUP 2: HERO LAUNCH DEMO PILL -->
+  <div class="section-title">Group 2: Hero Launch Demo Pill (Expected: Cyan Blue Text #0284c7)</div>
+
+  <!-- 2A: Plain text only -->
+  <div class="test-card">
+    <div class="test-info">
+      <strong>2A. Control (Plain Text Only, No SVG)</strong>
+      <small>Does text stay cyan blue?</small>
+    </div>
+    <button type="button" class="btn-pill">
+      <span>Launch demo</span>
+      <span class="pill-arrow">➔</span>
+    </button>
+  </div>
+
+  <!-- 2B: Glitched (Inline SVG before text) -->
+  <div class="test-card glitched">
+    <div class="test-info">
+      <strong>2B. Glitched (Inline &lt;svg&gt; BEFORE text)</strong>
+      <small>Current codebase state (Turns text dark gray/black)</small>
+    </div>
+    <button type="button" class="btn-pill">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"></path>
+      </svg>
+      <span>Launch demo</span>
+      <span class="pill-arrow">➔</span>
+    </button>
+  </div>
+
+  <!-- 2C: Icon via <img> tag -->
+  <div class="test-card candidate">
+    <div class="test-info">
+      <strong>2C. FIX CANDIDATE: Icon as &lt;img&gt; tag</strong>
+      <small>Isolates SVG from text painter (Expected: Cyan Blue)</small>
+    </div>
+    <button type="button" class="btn-pill">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%230284c7' viewBox='0 0 256 256'><path d='M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z'></path></svg>" width="16" height="16" alt="" />
+      <span>Launch demo</span>
+      <span class="pill-arrow">➔</span>
+    </button>
+  </div>
+
+  <!-- GROUP 3: SECONDARY WHITE BUTTON -->
+  <div class="section-title">Group 3: Secondary White Button (Expected: Dark Slate #0f172a)</div>
+
+  <!-- 3A: Plain text only -->
+  <div class="test-card">
+    <div class="test-info">
+      <strong>3A. Control (Plain Text Only, No SVG)</strong>
+      <small>Does text stay dark slate without SVG?</small>
+    </div>
+    <button type="button" class="btn-common btn-white">
       <span>Register Store / Sign In</span>
     </button>
   </div>
+
+  <!-- 3B: Glitched (Inline SVG before text) -->
+  <div class="test-card glitched">
+    <div class="test-info">
+      <strong>3B. Glitched (Inline &lt;svg&gt; BEFORE text)</strong>
+      <small>Current codebase state (Turns faint grayish-white)</small>
+    </div>
+    <button type="button" class="btn-common btn-white">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M232,96a7.89,7.89,0,0,0-.3-2.2l-16-64A8,8,0,0,0,208,24H48a8,8,0,0,0-7.7,5.8l-16,64A7.89,7.89,0,0,0,24,96v16a40,40,0,0,0,16,32v72a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V144a40,40,0,0,0,16-32ZM53.7,40H202.3l12,48H183.9l-9.6-48ZM158.1,88H97.9L88.3,40h79.4ZM41.7,88l12-48H69.7l-9.6,48ZM200,216H56V144h40a40,40,0,0,0,32-16,40,40,0,0,0,32,16h40Zm16-104a24,24,0,0,1-48,0V104h48Zm-64,0a24,24,0,0,1-48,0V104h48Zm-64,0a24,24,0,0,1-48,0V104h48Z"></path>
+      </svg>
+      <span>Register Store / Sign In</span>
+    </button>
+  </div>
+
+  <!-- 3C: Icon via <img> tag -->
+  <div class="test-card candidate">
+    <div class="test-info">
+      <strong>3C. FIX CANDIDATE: Icon as &lt;img&gt; tag</strong>
+      <small>Bypasses SVG inline context (Expected: Dark Slate)</small>
+    </div>
+    <button type="button" class="btn-common btn-white">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='17' height='17' fill='%230f172a' viewBox='0 0 256 256'><path d='M232,96a7.89,7.89,0,0,0-.3-2.2l-16-64A8,8,0,0,0,208,24H48a8,8,0,0,0-7.7,5.8l-16,64A7.89,7.89,0,0,0,24,96v16a40,40,0,0,0,16,32v72a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V144a40,40,0,0,0,16-32ZM53.7,40H202.3l12,48H183.9l-9.6-48ZM158.1,88H97.9L88.3,40h79.4ZM41.7,88l12-48H69.7l-9.6,48ZM200,216H56V144h40a40,40,0,0,0,32-16,40,40,0,0,0,32,16h40Zm16-104a24,24,0,0,1-48,0V104h48Zm-64,0a24,24,0,0,1-48,0V104h48Zm-64,0a24,24,0,0,1-48,0V104h48Z'></path></svg>" width="17" height="17" alt="" />
+      <span>Register Store / Sign In</span>
+    </button>
+  </div>
+
+  <!-- GROUP 4: POS CASHIER CHECKOUT BUTTON -->
+  <div class="section-title">Group 4: POS Cashier Checkout Button (Expected: Pure White Text)</div>
+
+  <!-- 4A: Plain text only -->
+  <div class="test-card">
+    <div class="test-info">
+      <strong>4A. Control (Plain Text Only, No SVG)</strong>
+      <small>Does text stay pure white without SVG?</small>
+    </div>
+    <button type="button" class="btn-common btn-green">
+      <span>Complete Transaction</span>
+    </button>
+  </div>
+
+  <!-- 4B: Glitched (Inline SVG before text) -->
+  <div class="test-card glitched">
+    <div class="test-info">
+      <strong>4B. Glitched (Inline &lt;svg&gt; BEFORE text)</strong>
+      <small>Current codebase state (Turns text dark gray/black)</small>
+    </div>
+    <button type="button" class="btn-common btn-green">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
+        <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+      </svg>
+      <span>Complete Transaction</span>
+    </button>
+  </div>
+
+  <!-- 4C: Icon via <img> tag -->
+  <div class="test-card candidate">
+    <div class="test-info">
+      <strong>4C. FIX CANDIDATE: Icon as &lt;img&gt; tag</strong>
+      <small>Bypasses SVG inline context (Expected: Pure White)</small>
+    </div>
+    <button type="button" class="btn-common btn-green">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%23ffffff' viewBox='0 0 256 256'><path d='M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z'></path></svg>" width="18" height="18" alt="" />
+      <span>Complete Transaction</span>
+    </button>
+  </div>
+
 </body>
 </html>

@@ -3312,6 +3312,10 @@ body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-appearance: none;
   appearance: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+  text-decoration: none;
 }
 
 .btn-checkout,
@@ -3323,7 +3327,7 @@ body {
   fill: #ffffff !important;
 }
 
-.btn-checkout:hover:not(:disabled) {
+.btn-checkout:hover:not(:disabled):not(.disabled):not([aria-disabled="true"]) {
   background: #059669;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
   transform: translateY(-1px);
@@ -3331,17 +3335,27 @@ body {
   -webkit-text-fill-color: #ffffff !important;
 }
 
-.btn-checkout:active:not(:disabled) {
+.btn-checkout:active:not(:disabled):not(.disabled):not([aria-disabled="true"]) {
   transform: translateY(0);
 }
 
-.btn-checkout:disabled {
-  background: #cbd5e1;
+.btn-checkout:disabled,
+.btn-checkout.disabled,
+.btn-checkout[aria-disabled="true"] {
+  background: #cbd5e1 !important;
   color: #94a3b8 !important;
   -webkit-text-fill-color: #94a3b8 !important;
-  box-shadow: none;
-  cursor: not-allowed;
-  transform: none;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+.btn-checkout.disabled *,
+.btn-checkout[aria-disabled="true"] * {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  fill: #94a3b8 !important;
 }
 
 /* --- UTILITIES (Toaster styles defined in glassmorphic section) --- */

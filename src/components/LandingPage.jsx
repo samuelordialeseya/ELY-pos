@@ -1,4 +1,5 @@
 import React from "react";
+import ButtonIcon from "./common/ButtonIcon";
 import "./LandingPage.css";
 import {
   Sparkle,
@@ -140,14 +141,16 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
             >
               <span>Sign In</span>
             </button>
-            <button
-              type="button"
+            <div
+              role="button"
+              tabIndex={0}
               className="lp-btn lp-btn-primary lp-btn-sm"
               onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleTriggerDemo({ withTour: false, view: "pos" })}
             >
-              <Sparkle size={15} weight="fill" />
+              <ButtonIcon name="sparkle" size={15} color="#ffffff" />
               <span>Try it out!</span>
-            </button>
+            </div>
           </div>
         </div>
       </header>
@@ -168,29 +171,33 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
             </p>
 
             <div className="hero-cta-group">
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 className="hero-launch-pill"
                 onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleTriggerDemo({ withTour: false, view: "pos" })}
                 title="Launch demo"
               >
                 <div className="hero-pill-badge">
-                  <Sparkle size={16} weight="fill" />
+                  <ButtonIcon name="sparkle" size={16} color="#0284c7" />
                   <span>Launch demo</span>
                 </div>
                 <span className="hero-pill-arrow-btn" aria-hidden="true">
-                  <ArrowRight size={15} weight="bold" />
+                  <ButtonIcon name="arrowRight" size={15} color="#ffffff" />
                 </span>
-              </button>
+              </div>
 
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 className="hero-btn-secondary"
                 onClick={handleTriggerAuth}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleTriggerAuth()}
               >
-                <Storefront size={17} weight="bold" />
+                <ButtonIcon name="storefront" size={17} color="#0f172a" />
                 <span>Register Store / Sign In</span>
-              </button>
+              </div>
             </div>
 
             <div className="hero-perks">
@@ -434,14 +441,16 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
               </p>
 
               <div className="lp-arch-links">
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   className="lp-btn lp-btn-secondary"
                   onClick={() => handleTriggerDemo({ withTour: false, view: "dashboard" })}
+                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleTriggerDemo({ withTour: false, view: "dashboard" })}
                 >
-                  <ChartBar size={17} weight="bold" />
+                  <ButtonIcon name="chartBar" size={17} color="#0f172a" />
                   <span>Preview Live Analytics</span>
-                </button>
+                </div>
                 <a
                   href="https://github.com/samuelordialeseya/ely-pos"
                   target="_blank"
@@ -478,15 +487,17 @@ export default function LandingPage({ onOpenAuth, onLaunchDemo }) {
               </p>
             </div>
             <div className="lp-cta-actions">
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 className="lp-btn lp-btn-primary lp-btn-lg"
                 onClick={() => handleTriggerDemo({ withTour: false, view: "pos" })}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleTriggerDemo({ withTour: false, view: "pos" })}
               >
-                <Lightning size={18} weight="fill" />
+                <ButtonIcon name="lightning" size={18} color="#ffffff" />
                 <span>Try it out!</span>
-                <ArrowRight size={17} weight="bold" />
-              </button>
+                <ButtonIcon name="arrowRight" size={17} color="#ffffff" />
+              </div>
               <button
                 type="button"
                 className="lp-btn lp-btn-secondary lp-btn-lg"

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ButtonIcon from "./common/ButtonIcon";
 import "./AuthPage.css";
 import { useAuth } from "../context/AuthContext";
 import { 
@@ -128,7 +129,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
       <div className="auth-card">
         {/* Back link */}
         <button className="auth-back-btn" onClick={onBackToLanding}>
-          <ArrowLeft size={16} weight="bold" />
+          <ButtonIcon name="arrowLeft" size={16} color="#64748b" />
           <span>Back to Landing</span>
         </button>
 
@@ -152,7 +153,7 @@ export default function AuthPage({ onBackToLanding, onSuccessLogin }) {
             <span>Explore the POS in an isolated sandbox with zero signup.</span>
           </div>
           <button className="auth-btn-quick-demo" onClick={handleDemoAccess} type="button">
-            <Sparkle size={15} weight="fill" />
+            <ButtonIcon name="sparkle" size={15} color="#ffffff" />
             <span>Launch Demo</span>
           </button>
         </div>

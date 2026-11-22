@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ButtonIcon from "../common/ButtonIcon";
 import {
   ShoppingCart,
   X,
@@ -250,24 +251,29 @@ export default function CartSidebar({
             >
               Clear
             </button>
-            <button
-              type="button"
-              className="btn-checkout"
-              onClick={handleCheckoutClick}
-              disabled={cart.length === 0 || isCheckingOut}
-              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            <div
+              role="button"
+              tabIndex={cart.length === 0 || isCheckingOut ? -1 : 0}
+              aria-disabled={cart.length === 0 || isCheckingOut}
+              className={`btn-checkout${cart.length === 0 || isCheckingOut ? " disabled" : ""}`}
+              onClick={cart.length === 0 || isCheckingOut ? undefined : handleCheckoutClick}
+              onKeyDown={(e) => {
+                if (cart.length === 0 || isCheckingOut) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleCheckoutClick();
+                }
+              }}
             >
-              <CheckCircle
+              <ButtonIcon
+                name="checkCircle"
                 size={18}
-                weight="bold"
-                style={{ color: "#ffffff" }}
+                color={cart.length === 0 || isCheckingOut ? "#94a3b8" : "#ffffff"}
               />
-              <span
-                style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
-              >
+              <span>
                 {isCheckingOut ? "Processing..." : "Complete Transaction"}
               </span>
-            </button>
+            </div>
           </div>
         </div>
       </aside>
