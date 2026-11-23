@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "./AuthContext";
 import { useStore } from "./StoreContext";
 import { getLocalDateKey } from "../data/demoSeed";
@@ -338,7 +338,7 @@ export function CartProvider({ children, showToast }) {
     }
   }, [undoBanner, dismissUndoBanner, isDemoMode, user, isOwnerAccount, setActiveOrders, setCustomerCount, showToast]);
 
-  const value = {
+  const value = useMemo(() => ({
     cart,
     customer,
     setCustomer,
@@ -362,7 +362,27 @@ export function CartProvider({ children, showToast }) {
     handleClearCart,
     completeOrder,
     handleUndoOrder
-  };
+  }), [
+    cart,
+    customer,
+    address,
+    weighInProduct,
+    editingCartId,
+    modalQtyStr,
+    isCheckingOut,
+    undoBanner,
+    dismissUndoBanner,
+    completedReceiptModal,
+    openWeighInModal,
+    openEditCartItemModal,
+    closeWeighInModal,
+    handleConfirmWeighIn,
+    stepCartItemQty,
+    handleRemoveCartItem,
+    handleClearCart,
+    completeOrder,
+    handleUndoOrder
+  ]);
 
   return (
     <CartContext.Provider value={value}>

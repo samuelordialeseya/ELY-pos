@@ -130,7 +130,10 @@ export function StoreProvider({ children, showToast }) {
     };
   }, [isDemoMode, user, isOwnerAccount]);
 
-  const fruits = isDemoMode ? demoFruits : (user ? cloudFruits : []);
+  const fruits = useMemo(
+    () => (isDemoMode ? demoFruits : (user ? cloudFruits : [])),
+    [isDemoMode, demoFruits, user, cloudFruits]
+  );
   const activeOrders = useMemo(
     () => (isDemoMode ? demoOrders : (user ? cloudOrders : [])),
     [isDemoMode, demoOrders, user, cloudOrders]
@@ -339,7 +342,7 @@ export function StoreProvider({ children, showToast }) {
     localStorage.removeItem("elypos_receipt_config");
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     fruits,
     activeOrders,
     setActiveOrders,
@@ -366,7 +369,34 @@ export function StoreProvider({ children, showToast }) {
     updateStoreName,
     updateReceiptConfig,
     resetStoreStateOnLogout
-  };
+  }), [
+    fruits,
+    activeOrders,
+    setActiveOrders,
+    historyOrders,
+    customerCount,
+    setCustomerCount,
+    storeName,
+    setStoreName,
+    receiptConfig,
+    showSetupWizard,
+    setShowSetupWizard,
+    filterDate,
+    setFilterDate,
+    dashboardRange,
+    setDashboardRange,
+    dashboardCustomDate,
+    setDashboardCustomDate,
+    dashAggregates,
+    handleAddProduct,
+    handleUpdateProduct,
+    handleDeleteProduct,
+    handleDeleteOrder,
+    handleToggleDeliveryStatus,
+    updateStoreName,
+    updateReceiptConfig,
+    resetStoreStateOnLogout
+  ]);
 
   return (
     <StoreContext.Provider value={value}>
