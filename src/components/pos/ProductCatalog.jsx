@@ -1,5 +1,6 @@
 import React, { useMemo, memo } from "react";
-import { Package, MagnifyingGlass, ShoppingCart } from "@phosphor-icons/react";
+import ButtonIcon from "../common/ButtonIcon";
+import { Package, MagnifyingGlass } from "@phosphor-icons/react";
 import { getCategoryTheme } from "../../utils/themeUtils";
 import { roundWeight } from "../../utils/moneyUtils";
 
@@ -43,7 +44,7 @@ const ProductCard = memo(function ProductCard({
             className="card-cart-badge"
             title={`${cartQty} ${fruit.unit} in current cart`}
           >
-            <ShoppingCart size={11} weight="bold" />
+            <ButtonIcon name="shoppingCart" size={11} color="#ffffff" />
             <span>
               {cartQty} {fruit.unit}
             </span>

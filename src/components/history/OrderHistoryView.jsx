@@ -13,6 +13,7 @@ import {
   Clock,
   Printer
 } from "@phosphor-icons/react";
+import ButtonIcon from "../common/ButtonIcon";
 import { formatPeso } from "../../utils/themeUtils";
 import { roundCentavos, isDeliveryOrder } from "../../utils/moneyUtils";
 import { getLocalDateKey } from "../../data/demoSeed";
@@ -410,7 +411,7 @@ export default function OrderHistoryView({
               }}
               title="Export filtered transaction journal to CSV"
             >
-              <DownloadSimple size={15} weight="bold" />
+              <ButtonIcon name="download" size={15} color="#334155" />
               <span>Export Journal</span>
             </button>
 
@@ -576,7 +577,7 @@ export default function OrderHistoryView({
                       onClick={() => onSelectOrder && onSelectOrder(ord)}
                       title="Reprint Official Sales Receipt"
                     >
-                      <Printer size={15} weight="bold" />
+                      <ButtonIcon name="printer" size={15} color="#0284c7" />
                       <span>Reprint Receipt</span>
                     </button>
                     <button

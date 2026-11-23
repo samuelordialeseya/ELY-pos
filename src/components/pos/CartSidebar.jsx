@@ -154,7 +154,7 @@ export default function CartSidebar({
                         title={`Remove ${item.name}`}
                         aria-label={`Remove ${item.name} from cart`}
                       >
-                        <X size={14} weight="bold" />
+                        <ButtonIcon name="x" size={14} color="#ef4444" />
                       </button>
                     </div>
                   </div>

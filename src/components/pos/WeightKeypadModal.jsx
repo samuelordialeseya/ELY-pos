@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from "react";
-import { X, Backspace, Check } from "@phosphor-icons/react";
+import ButtonIcon from "../common/ButtonIcon";
+import { X, Backspace } from "@phosphor-icons/react";
 import { computeItemSubtotal, isWeightUnit } from "../../utils/moneyUtils";
 
 export default function WeightKeypadModal({
@@ -174,13 +175,16 @@ export default function WeightKeypadModal({
           </button>
           <button
             type="button"
-            className="weighin-confirm-btn"
+            className={`weighin-confirm-btn${!parsedQty || parsedQty <= 0 ? " disabled" : ""}`}
             onClick={onConfirm}
             disabled={!parsedQty || parsedQty <= 0}
-            style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
           >
-            <Check size={18} weight="bold" style={{ color: "#ffffff" }} />
-            <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+            <ButtonIcon
+              name="check"
+              size={18}
+              color={!parsedQty || parsedQty <= 0 ? "#94a3b8" : "#ffffff"}
+            />
+            <span style={{ color: !parsedQty || parsedQty <= 0 ? "#94a3b8" : "#ffffff", WebkitTextFillColor: !parsedQty || parsedQty <= 0 ? "#94a3b8" : "#ffffff" }}>
               {isEditingCartItem ? "Update Cart" : "Add to Cart"} · ₱{subtotal.toFixed(2)}
             </span>
           </button>

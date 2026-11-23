@@ -125,6 +125,7 @@
 
 /* Buttons */
 .settings-btn {
+  isolation: isolate;
   width: 100%;
   text-align: left;
   display: flex;
@@ -134,12 +135,18 @@
   border-radius: 10px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
-  color: #1e293b;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.settings-btn span {
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
 }
 
 .settings-btn:hover {
@@ -149,15 +156,27 @@
 }
 
 .settings-btn-danger {
-  color: #ef4444;
+  color: #ef4444 !important;
+  -webkit-text-fill-color: #ef4444 !important;
   border-color: #fecaca;
   background: #ffffff;
+}
+
+.settings-btn-danger span {
+  color: #ef4444 !important;
+  -webkit-text-fill-color: #ef4444 !important;
 }
 
 .settings-btn-danger:hover {
   background: #fff5f5;
   border-color: #fca5a5;
-  color: #dc2626;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+}
+
+.settings-btn-danger:hover span {
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
 }
 
 /* Saved confirmation */

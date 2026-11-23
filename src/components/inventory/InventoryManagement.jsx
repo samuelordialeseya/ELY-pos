@@ -8,6 +8,7 @@ import {
   PencilSimple, 
   Trash 
 } from "@phosphor-icons/react";
+import ButtonIcon from "../common/ButtonIcon";
 import ConfirmModal from "../shared/ConfirmModal";
 
 export default function InventoryManagement({
@@ -260,7 +261,7 @@ export default function InventoryManagement({
                 className="btn-save-inv" 
                 style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
               >
-                <Plus size={18} weight="bold" style={{ color: '#ffffff' }} />
+                <ButtonIcon name="plus" size={18} color="#ffffff" />
                 <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>Add to Inventory</span>
               </button>
             </div>
@@ -372,7 +373,7 @@ export default function InventoryManagement({
                             title="Save Changes"
                             aria-label="Save Changes"
                           >
-                            <Check size={14} weight="bold" />
+                            <ButtonIcon name="check" size={14} color="#ffffff" />
                             <span>Save</span>
                           </button>
                           <button
@@ -382,7 +383,7 @@ export default function InventoryManagement({
                             title="Cancel"
                             aria-label="Cancel"
                           >
-                            <X size={14} weight="bold" />
+                            <ButtonIcon name="x" size={14} color="#1e293b" />
                             <span>Cancel</span>
                           </button>
                         </div>

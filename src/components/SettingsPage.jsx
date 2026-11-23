@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowClockwise, Compass, ArrowsClockwise, SignOut } from "@phosphor-icons/react";
+import ButtonIcon from "./common/ButtonIcon";
 import ReceiptTemplateEditor from "./ReceiptTemplateEditor";
 import "./SettingsPage.css";
 
@@ -130,7 +130,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onRerunWizard}
           >
-            <ArrowClockwise size={16} weight="bold" />
+            <ButtonIcon name="arrowClockwise" size={16} color="#1e293b" />
             <span>Re-run Setup Wizard</span>
           </button>
           <button
@@ -138,7 +138,7 @@ export default function SettingsPage({
             className="settings-btn"
             onClick={onStartFullTour}
           >
-            <Compass size={16} weight="bold" />
+            <ButtonIcon name="compass" size={16} color="#1e293b" />
             <span>Take Full Guided Tour</span>
           </button>
         </div>
@@ -159,7 +159,7 @@ export default function SettingsPage({
               }
             }}
           >
-            <ArrowsClockwise size={16} weight="bold" />
+            <ButtonIcon name="arrowsClockwise" size={16} color="#1e293b" />
             <span>Reload Terminal</span>
           </button>
         </div>
@@ -174,7 +174,7 @@ export default function SettingsPage({
             className="settings-btn settings-btn-danger"
             onClick={onSignOut}
           >
-            <SignOut size={16} weight="bold" />
+            <ButtonIcon name="signOut" size={16} color="#ef4444" />
             <span>{isDemoMode ? "Exit Demo" : "Sign Out"}</span>
           </button>
         </div>
