@@ -344,6 +344,8 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
   scrollbar-width: none;
   padding: 2px 12px 6px 2px;
   flex-wrap: nowrap;
@@ -367,13 +369,26 @@
   color: #475569;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
-.cat-filter-btn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
+@media (hover: hover) and (pointer: fine) {
+  .cat-filter-btn {
+    transition: all 0.15s ease;
+  }
+  .cat-filter-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+}
+
+.cat-filter-btn:active {
+  transform: scale(0.97);
+  transition: transform 0.06s ease;
 }
 
 .cat-filter-btn.active {
@@ -995,7 +1010,10 @@
   background: white;
   border-radius: 16px;
   border: 1px solid #E5E7EB;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-y;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1033,8 +1051,10 @@
   vertical-align: middle;
 }
 
-.inv-table tbody tr:hover:not(.row-editing) {
-  background: #f8fafc;
+@media (hover: hover) and (pointer: fine) {
+  .inv-table tbody tr:hover:not(.row-editing) {
+    background: #f8fafc;
+  }
 }
 
 .inv-table tbody tr.row-editing {
@@ -1818,6 +1838,10 @@
 .bill-items {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  transform: translateZ(0);
   margin: 20px 0;
   padding-right: 5px;
   min-height: 0;
@@ -2230,6 +2254,12 @@ html {
   background: #F9FAFB;
 }
 
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background: var(--bg);
@@ -2238,8 +2268,8 @@ body {
   background-color: #F9FAFB;
   color: #111827;
   overflow-x: hidden;
-  overflow-y: auto;
   width: 100%;
+  height: 100%;
 }
 
 
@@ -2271,9 +2301,13 @@ body {
 .main-viewport {
   padding: 30px;
   overflow-y: auto;
-  /* Enable vertical scrolling for content */
+  /* Enable native momentum scrolling for content on iOS/iPadOS */
   -webkit-overflow-scrolling: touch;
-  /* Smooth scroll on iOS */
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  /* Hardware-accelerate scrolling layer on Apple GPU compositor */
+  transform: translateZ(0);
+  will-change: scroll-position;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -2311,6 +2345,8 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
   scrollbar-width: none;
   padding: 2px 12px 6px 2px;
   flex-wrap: nowrap;
@@ -2334,13 +2370,26 @@ body {
   color: #475569;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
-.cat-filter-btn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
+@media (hover: hover) and (pointer: fine) {
+  .cat-filter-btn {
+    transition: all 0.15s ease;
+  }
+  .cat-filter-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+  }
+}
+
+.cat-filter-btn:active {
+  transform: scale(0.97);
+  transition: transform 0.06s ease;
 }
 
 .cat-filter-btn.active {
@@ -2453,6 +2502,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
   gap: 16px;
   padding-bottom: 30px;
+  touch-action: pan-y;
 }
 
 .food-card {
@@ -2464,21 +2514,36 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
   position: relative;
   box-sizing: border-box;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 175px;
 }
 
-.food-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+/* Only fine pointer (desktop mouse/trackpad) triggers hover lift & shadow.
+   Touch devices (iPad/tablets) bypass hover transitions completely so scrolling remains 60fps smooth. */
+@media (hover: hover) and (pointer: fine) {
+  .food-card {
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .food-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+  }
 }
 
 .food-card:active {
   transform: scale(0.985);
+  transition: transform 0.06s ease;
 }
 
 .card-top-row {
@@ -2616,20 +2681,29 @@ body {
   color: #ffffff;
   border: none;
   box-shadow: 0 2px 6px rgba(0, 163, 224, 0.22);
-  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   box-sizing: border-box;
+  touch-action: manipulation;
 }
 
-.btn-card-add:hover {
-  background: #0284c7;
-  box-shadow: 0 4px 12px rgba(0, 163, 224, 0.35);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .btn-card-add {
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-card-add:hover {
+    background: #0284c7;
+    box-shadow: 0 4px 12px rgba(0, 163, 224, 0.35);
+    transform: translateY(-1px);
+  }
 }
 
 .btn-card-add:active {
   transform: scale(0.98);
   background: #0369a1;
+  transition: transform 0.06s ease;
 }
 
 /* Cart Item Touch Steppers */
@@ -3134,6 +3208,10 @@ body {
 .bill-items {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  transform: translateZ(0);
   margin: 8px 0 16px 0;
   padding-right: 4px;
   min-height: 0;
@@ -3873,12 +3951,13 @@ body {
 }
 
 .dash-quick-sale-btn {
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #00A3E0;
   color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff;
+  -webkit-text-fill-color: #ffffff !important;
   border: none;
   padding: 8px 16px;
   min-height: 38px;
@@ -3896,13 +3975,18 @@ body {
 .dash-quick-sale-btn span,
 .dash-quick-sale-btn svg {
   color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .dash-quick-sale-btn:hover {
-  background: #0284c7;
+  background: #0294cc;
   transform: translateY(-1px);
   box-shadow: 0 5px 14px rgba(0, 163, 224, 0.38);
+}
+
+.dash-quick-sale-btn:hover span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .dash-quick-sale-btn:active {
@@ -4090,11 +4174,13 @@ body {
 }
 
 .dash-panel-action-btn {
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   background: #f8fafc;
-  color: #0284c7;
+  color: #0284c7 !important;
+  -webkit-text-fill-color: #0284c7 !important;
   border: 1px solid #e0f2fe;
   padding: 5px 10px;
   border-radius: 8px;
@@ -4105,9 +4191,20 @@ body {
   transition: all 0.15s ease;
 }
 
+.dash-panel-action-btn span {
+  color: #0284c7 !important;
+  -webkit-text-fill-color: #0284c7 !important;
+}
+
 .dash-panel-action-btn:hover {
   background: #e0f2fe;
-  color: #0369a1;
+  color: #0369a1 !important;
+  -webkit-text-fill-color: #0369a1 !important;
+}
+
+.dash-panel-action-btn:hover span {
+  color: #0369a1 !important;
+  -webkit-text-fill-color: #0369a1 !important;
 }
 
 /* Panel Empty State */
@@ -4144,11 +4241,13 @@ body {
 }
 
 .dash-empty-btn {
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background: #f1f5f9;
-  color: #0284c7;
+  color: #0284c7 !important;
+  -webkit-text-fill-color: #0284c7 !important;
   border: 1px solid #bae6fd;
   padding: 8px 16px;
   border-radius: 8px;
@@ -4157,6 +4256,11 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.dash-empty-btn span {
+  color: #0284c7 !important;
+  -webkit-text-fill-color: #0284c7 !important;
 }
 
 .dash-empty-btn:hover {

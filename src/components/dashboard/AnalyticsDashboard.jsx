@@ -12,6 +12,7 @@ import {
   ArrowUpRight, 
   Truck 
 } from "@phosphor-icons/react";
+import ButtonIcon from "../common/ButtonIcon";
 import { formatPeso } from "../../utils/themeUtils";
 import { isDeliveryOrder } from "../../utils/moneyUtils";
 
@@ -95,10 +96,9 @@ export default function AnalyticsDashboard({
             className="dash-quick-sale-btn"
             onClick={onNavigateToPos}
             title="Open Point of Sale register"
-            style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
           >
-            <ShoppingCart size={15} style={{ color: "#ffffff" }} />
-            <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>New Sale</span>
+            <ButtonIcon name="shoppingCart" size={15} color="#ffffff" />
+            <span>New Sale</span>
           </button>
         </div>
       </div>
@@ -201,7 +201,7 @@ export default function AnalyticsDashboard({
                 className="dash-empty-btn"
                 onClick={onNavigateToPos}
               >
-                <ShoppingCart size={14} weight="bold" />
+                <ButtonIcon name="shoppingCart" size={14} color="#0284c7" />
                 <span>Open POS Register</span>
               </button>
             </div>
@@ -273,7 +273,7 @@ export default function AnalyticsDashboard({
                 className="dash-empty-btn"
                 onClick={onNavigateToPos}
               >
-                <ShoppingCart size={14} weight="bold" />
+                <ButtonIcon name="shoppingCart" size={14} color="#0284c7" />
                 <span>Start First Sale</span>
               </button>
             </div>
